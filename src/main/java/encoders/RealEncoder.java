@@ -302,10 +302,6 @@ public class RealEncoder implements Encoder<Float> {
 	@Override
 	public Float decoder(int[] enc) {
 		
-		for(int i = 0; i < enc.length; i++) {
-			System.out.println(enc[i] + " " + all_split_values[i]);
-		}
-		
 		int index = 0;
 		for(int i = 0; i < enc.length; i++) {
 			
@@ -314,12 +310,23 @@ public class RealEncoder implements Encoder<Float> {
 				break;
 			}
 		}
+		if(index == 0) index = 1;
 		
-		return all_split_values[index];
+		return all_split_values[index-1];
 	}
 
 
 
+	public String getStringSplitValue() {
+		
+		String splits = "";
+		for(int i = 0; i < all_split_values.length; i++) {
+			splits += all_split_values[i] + " ";
+		}
+		splits += "\n";
+		
+		return splits;		
+	}
 
 	
 	

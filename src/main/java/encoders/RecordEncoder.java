@@ -12,6 +12,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import records.AnyRecord;
 import records.TimeIndicator;
 
 /**
@@ -65,6 +66,79 @@ public class RecordEncoder<V>  {
 		return this;
 	}
 	
+	/**
+	 * Intantiates a record encoder with a record containing field_names and a bit dimension
+	 * @param record
+	 * @param datetime_format
+	 * @param dim
+	 * @return
+	 */
+	public RecordEncoder<V> initiate(AnyRecord record, String datetime_format, int dim) {
+		
+		if(record.getField_names() != null) {
+			
+			field_names = record.getField_names();
+			encode_maps = new Encoder[field_names.length];
+						
+			for(int i = 0; i < record.getValues().length; i++) {
+				
+				if(field_names[i].contains("time")) {
+					encode_maps[i] = new TimeEncoder("timestamp", datetime_format);
+				}
+				else {
+					
+					if(record.getValues()[i] instanceof Double || record.getValues()[i] instanceof Float || record.getValues()[i] instanceof Integer) {
+						encode_maps[i] = new RealEncoder(field_names[i], dim);
+					}
+					else {
+						encode_maps[i] = new CategoricalEncoder(field_names[i]);
+					}
+				}				
+			}
+			
+		}
+		return this;
+	}
+	
+	/**
+	 * Instantiate a record encoder with anyRecord. Must contain field names
+	 * @param record
+	 * @return
+	 */
+	public RecordEncoder<V> initiate(AnyRecord record) {
+		
+		if(record.getField_names() != null) {
+			
+			field_names = record.getField_names();
+			encode_maps = new Encoder[field_names.length];
+						
+			for(int i = 0; i < record.getValues().length; i++) {
+				
+				if(field_names[i].contains("time") || field_names[i].contains("date")) {
+					encode_maps[i] = new TimeEncoder("timestamp", "yyyy-MM-dd HH:mm:ss");
+				}
+				else {
+					
+					if(record.getValues()[i] instanceof Double || record.getValues()[i] instanceof Float || record.getValues()[i] instanceof Integer) {
+						encode_maps[i] = new RealEncoder(field_names[i], 10);
+					}
+					else {
+						encode_maps[i] = new CategoricalEncoder(field_names[i]);
+					}
+				}				
+			}	
+		}
+		return this;
+	}
+	
+	public void encoderTypes() {
+		
+		for(int i = 0; i < encode_maps.length; i++) {
+			System.out.println(encode_maps[i].toString());
+		}
+		
+	}
+	
 	
 	/**
 	 * Add a value (in terms of a record)
@@ -74,6 +148,41 @@ public class RecordEncoder<V>  {
 	 * @throws IllegalAccessException
 	 */
 	public void addValue(V val) throws IllegalArgumentException, IllegalAccessException {
+		
+		if(val instanceof AnyRecord) { 
+			addRecordValue((AnyRecord)val);
+		}
+		else {			
+			addClassRecord(val);
+		}
+	}
+	
+	private void addRecordValue(AnyRecord any) {
+		
+		for(int i = 0; i < any.getValues().length; i++) {
+			
+			if(encode_maps[i] instanceof TimeEncoder && any.getValues()[i] instanceof String) {
+				((TimeEncoder)encode_maps[i]).addValue(new Temporal((String)any.getValues()[i]));
+			}
+			else if(any.getValues()[i] instanceof Float) {
+				Float value = (Float)any.getValues()[i];
+				((RealEncoder)encode_maps[i]).addValue(value);
+			}
+			else if(any.getValues()[i] instanceof Double) {
+				Float value = ((Double)any.getValues()[i]).floatValue();
+				((RealEncoder)encode_maps[i]).addValue(value);
+			}
+			else if(any.getValues()[i] instanceof Integer) {
+				Float value = ((Integer)any.getValues()[i]).floatValue();
+				((RealEncoder)encode_maps[i]).addValue(value);
+			}
+			else {
+				((CategoricalEncoder)encode_maps[i]).addValue((String)any.getValues()[i]);
+			}							
+		}		
+	}
+	
+	private void addClassRecord(V val) throws IllegalArgumentException, IllegalAccessException {
 		
 		List<Field> fields = getPrivateFields(val.getClass());
 		
@@ -86,39 +195,35 @@ public class RecordEncoder<V>  {
 				field.setAccessible(true);
 				Float value = (float)field.getDouble(val);				
 				((RealEncoder)encode_maps[count]).addValue(value);
-				System.out.println(field.getName());
 			}
 			else if(type.contains("float")) {
 				
 				field.setAccessible(true);
 				Float value = field.getFloat(val);				
 				((RealEncoder)encode_maps[count]).addValue(value);
-				System.out.println(field.getName());
+				
 			}
 			else if(type.contains("int")) {
 				
 				field.setAccessible(true);
 				Float value = (float)field.getInt(val);				
 				((RealEncoder)encode_maps[count]).addValue(value);
-				System.out.println(field.getName());
 			}
 			else if(type.contains("Temporal")) {
 				
 				field.setAccessible(true);
 				Temporal value = (Temporal)field.get(val);				
-				((TimeEncoder)encode_maps[count]).addValue(value);
-				System.out.println("Temporal " + field.getName());				
+				((TimeEncoder)encode_maps[count]).addValue(value);			
 			}
 			else { 				
 				field.setAccessible(true);
 				String value = field.get(val).toString();
 				((CategoricalEncoder)encode_maps[count]).addValue(value);
-				System.out.println(field.getName());
 			}	
 			count++;
 		}	
+		
 	}
-	
 
 	/**
 	 * Fit all with the uniform rule
@@ -146,53 +251,12 @@ public class RecordEncoder<V>  {
 	 * @throws IllegalAccessException
 	 */
 	public int[] transform(V val) throws IllegalArgumentException, IllegalAccessException {
-		
-		int[] encoded = null;
-		
-		List<Field> fields = getPrivateFields(val.getClass());
-		
-		int count = 0;
-		for(Field field : fields) {
-
-			String type = field.getType().toString();
-			if(type.contains("double")) {
-							
-				field.setAccessible(true);
-				Float value = (float)field.getDouble(val);				
-				int[] bits = ((RealEncoder)encode_maps[count]).transform(value);
-				encoded = ArrayUtils.addAll(encoded, bits);
-			}
-			else if(type.contains("float")) {
-				
-				field.setAccessible(true);
-				Float value = field.getFloat(val);				
-				int[] bits = ((RealEncoder)encode_maps[count]).transform(value);
-				encoded = ArrayUtils.addAll(encoded, bits);
-			}
-			else if(type.contains("int")) {
-				
-				field.setAccessible(true);
-				Float value = (float)field.getInt(val);				
-				int[] bits = ((RealEncoder)encode_maps[count]).transform(value);
-				encoded = ArrayUtils.addAll(encoded, bits);
-			}
-			else if(type.contains("Temporal")) {
-				
-				field.setAccessible(true);
-				Temporal value = (Temporal)field.get(val);				
-				int[] bits = ((TimeEncoder)encode_maps[count]).transform(value);
-				encoded = ArrayUtils.addAll(encoded, bits);	
-			}
-			else { 				
-				field.setAccessible(true);
-				String value = field.get(val).toString();
-				int[] bits = ((CategoricalEncoder)encode_maps[count]).transform(value);
-				encoded = ArrayUtils.addAll(encoded, bits);
-			}	
-			count++;
-		}	
-				
-		return encoded;	
+					
+		if(val instanceof AnyRecord) { 		
+			return transform_any_record((AnyRecord)val);
+		}
+			
+		return transform_record(val);
 	}
 	
 	public ArrayList<RecordDecodeResult> decode(int[] en) {
@@ -212,12 +276,8 @@ public class RecordEncoder<V>  {
 			res.setField_name(field_names[i]);
 			
 			decode_list.add(res);
-		}
-		
-		
+		}				
 		return decode_list;
-		
-		
 	}
 	
 	
@@ -233,9 +293,6 @@ public class RecordEncoder<V>  {
 		}
 		return dim;	
 	}
-	
-	
-	
 	
 	
 	public  List<Field> getPrivateFields(Class<?> theClass){
@@ -315,6 +372,7 @@ public class RecordEncoder<V>  {
 		for(int i = 0; i < enc.length; i++) {
 			System.out.print(enc[i] + " ");
 		} 
+		System.out.println("");
 		
 		ArrayList<RecordDecodeResult> results = rencoder.decode(enc);
 		
@@ -334,6 +392,100 @@ public class RecordEncoder<V>  {
 	}
 	
 
+	/**
+	 * Transforms any generic record
+	 * @param any
+	 * @return
+	 */
+	private int[] transform_any_record(AnyRecord any) {
+		
+		int[] encoded = null;
+
+		for(int i = 0; i < any.getValues().length; i++) {
+			
+			if(encode_maps[i] instanceof TimeEncoder && any.getValues()[i] instanceof String) {
+				int[] bits = ((TimeEncoder)encode_maps[i]).transform(new Temporal((String)any.getValues()[i]));
+				encoded = ArrayUtils.addAll(encoded, bits);	
+			}
+			else if(any.getValues()[i] instanceof Float) {
+				int[] bits = ((RealEncoder)encode_maps[i]).transform((Float)any.getValues()[i]);
+				encoded = ArrayUtils.addAll(encoded, bits);
+			}
+			else if(any.getValues()[i] instanceof Double) {
+				int[] bits = ((RealEncoder)encode_maps[i]).transform(((Double)any.getValues()[i]).floatValue());
+				encoded = ArrayUtils.addAll(encoded, bits);
+			}
+			else if(any.getValues()[i] instanceof Integer) {
+				int[] bits = ((RealEncoder)encode_maps[i]).transform(((Integer)any.getValues()[i]).floatValue());
+				encoded = ArrayUtils.addAll(encoded, bits);
+			}
+			else {
+				int[] bits = ((CategoricalEncoder)encode_maps[i]).transform((String)any.getValues()[i]);
+				encoded = ArrayUtils.addAll(encoded, bits);
+			}					
+		}
+		
+		return encoded;		
+	}
+	
+	/**
+	 * Transforms a predefined record
+	 * @param val
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 */
+	private int[] transform_record(V val) throws IllegalArgumentException, IllegalAccessException {
+		
+		List<Field> fields = getPrivateFields(val.getClass());
+		
+		int count = 0;
+		int[] encoded = null;
+		
+		for(Field field : fields) {
+
+			String type = field.getType().toString();
+			if(type.contains("double")) {
+							
+				field.setAccessible(true);
+				Float value = (float)field.getDouble(val);				
+				int[] bits = ((RealEncoder)encode_maps[count]).transform(value);
+				encoded = ArrayUtils.addAll(encoded, bits);
+			}
+			else if(type.contains("float")) {
+				
+				field.setAccessible(true);
+				Float value = field.getFloat(val);				
+				int[] bits = ((RealEncoder)encode_maps[count]).transform(value);
+				encoded = ArrayUtils.addAll(encoded, bits);
+			}
+			else if(type.contains("int")) {
+				
+				field.setAccessible(true);
+				Float value = (float)field.getInt(val);				
+				int[] bits = ((RealEncoder)encode_maps[count]).transform(value);
+				encoded = ArrayUtils.addAll(encoded, bits);
+			}
+			else if(type.contains("Temporal")) {
+				
+				field.setAccessible(true);
+				Temporal value = (Temporal)field.get(val);				
+				int[] bits = ((TimeEncoder)encode_maps[count]).transform(value);
+				encoded = ArrayUtils.addAll(encoded, bits);	
+			}
+			else { 				
+				field.setAccessible(true);
+				String value = field.get(val).toString();
+				int[] bits = ((CategoricalEncoder)encode_maps[count]).transform(value);
+				encoded = ArrayUtils.addAll(encoded, bits);
+			}	
+			count++;
+		}					
+		return encoded;	
+
+	}
+	
+	
 	
 	
 	

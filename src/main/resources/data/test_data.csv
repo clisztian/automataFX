@@ -1,0 +1,11 @@
+timestamp, category_name, category_reach, value, gdp, growth
+2020-11-19 12:05:22, "economic", "EU", 1,1,.1
+2020-11-20 12:05:22, "economic", "EU", 2,2,.3
+2020-11-21 12:05:22, "economic", "EU", 3,3,.4
+2020-11-22 12:05:22, "economic", "EU", 4,4,.5
+2020-11-23 12:05:22, "weather", "cantonal", 5,7,.6
+2020-11-24 12:05:22, "weather", "cantonal", 6,12,.7
+2020-11-25 12:05:22, "weather", "cantonal", 7,13,.8
+2020-11-26 12:05:22, "financial", "city", 8,1,.9
+2020-11-27 12:05:22, "financial", "city", 9,19,1.0
+2020-11-28 12:05:22, "health", "global", 10,11,.81

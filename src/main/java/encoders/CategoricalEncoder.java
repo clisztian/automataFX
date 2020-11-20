@@ -235,9 +235,11 @@ public class CategoricalEncoder implements Encoder<String> {
 		
 		int index = 0;
 		for(int i = 0; i < enc.length; i++) {
-			if(enc[i] == 1) index = i; break;
+			if(enc[i] == 1) {
+				index = i; 
+				break;
+			}
 		}
-		
 		return getKeyByValue(category_map, index);
 	}
 	

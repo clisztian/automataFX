@@ -189,34 +189,6 @@ public class FastUnitAutomaton {
     }
     
     
-    /* Sum up the votes for each class */
-//	public int sum_up_class_votes() {
-//		
-//		int class_sum = 0;
-//
-//		for (int j = 0; j < nClauses; j++) {
-//			
-//			int clause_chunk = j / 32;
-//			int clause_pos = j % 32;
-//
-//			if (j % 2 == 0) {
-//				class_sum += clause_weights[j] * ((clause_output[clause_chunk] & (1 << clause_pos)) != 0 ? 1 : 0);
-//			} else {
-//				class_sum -= clause_weights[j] * ((clause_output[clause_chunk] & (1 << clause_pos)) != 0 ? 1 : 0);
-//			}
-//			
-//
-//			
-//		}
-//
-//		class_sum = (class_sum > T) ? T : class_sum;
-//		class_sum = (class_sum < -T) ? -T : class_sum;
-//
-//		
-//		return class_sum;
-//	}
-    
-
 	/* Sum up the votes for each class */
 	public int sum_up_class_votes() {
 		
