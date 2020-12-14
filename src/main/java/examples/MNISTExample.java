@@ -2,7 +2,7 @@ package examples;
 
 import java.io.IOException;
 
-import tsetlin.HierarchicalEncoder;
+import tsetlin.ConvolutionEncoder;
 import tsetlin.MultivariateConvolutionalAutomatonMachine;
 
 public class MNISTExample {
@@ -17,7 +17,7 @@ public class MNISTExample {
 		int patchX = 10; 
 		int patchY = 10;
 		
-		HierarchicalEncoder myEncoder = new HierarchicalEncoder(dimX, dimY, 1, patchX, patchY);
+		ConvolutionEncoder myEncoder = new ConvolutionEncoder(dimX, dimY, 1, patchX, patchY);
 		int[][] X_encoder = myEncoder.bit_encoder(num_samples, "/home/lisztian/fast-tsetlin-machine-with-mnist-demo/MNISTTraining.txt", ' ');
 		int[] label = myEncoder.getLabels();
 		

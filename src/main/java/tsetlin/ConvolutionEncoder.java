@@ -23,7 +23,7 @@ import com.csvreader.CsvReader;
  * @author lisztian
  *
  */
-public class HierarchicalEncoder {
+public class ConvolutionEncoder {
 
 	/*
 	 * Dimensions of input data 
@@ -72,7 +72,7 @@ public class HierarchicalEncoder {
 	 * @param patch_dim_y
 	 * @param append_negated
 	 */
-	public HierarchicalEncoder(int dim_x, int dim_y, int patch_dim_y) {
+	public ConvolutionEncoder(int dim_x, int dim_y, int patch_dim_y) {
 		
 		this.nbits = dim_x;		
 		this.dim_x = dim_x; 
@@ -99,7 +99,7 @@ public class HierarchicalEncoder {
 	 * @param patch_dim_x
 	 * @param patch_dim_y
 	 */
-	public HierarchicalEncoder(int dim_x, int dim_y, int dim_z, int patch_dim_x, int patch_dim_y) {
+	public ConvolutionEncoder(int dim_x, int dim_y, int dim_z, int patch_dim_x, int patch_dim_y) {
 		
 		this.dim_x = dim_x; 
 		this.dim_y = dim_y;
@@ -119,7 +119,7 @@ public class HierarchicalEncoder {
 	 * Formulation for standard tabular data
 	 * @param z
 	 */
-	public HierarchicalEncoder(int x) {
+	public ConvolutionEncoder(int x) {
 		
 		this.dim_x = x; 
 		this.dim_y = 1;
@@ -485,7 +485,7 @@ public class HierarchicalEncoder {
 		int patch_dim_y = 40;
 		int n_samples = 200;
 		
-		HierarchicalEncoder encoder = new HierarchicalEncoder(dim_x, dim_y, patch_dim_y);			
+		ConvolutionEncoder encoder = new ConvolutionEncoder(dim_x, dim_y, patch_dim_y);			
 		
 		
 	}

@@ -19,7 +19,7 @@ public class ConvolutionalAutomatonMachine {
 	
 	final int INT_SIZE = 32;
 	
-	private HierarchicalEncoder encoder;
+	private ConvolutionEncoder encoder;
 	private int number_of_patches;
 	private int nClauses;
 	private int la_chunks;
@@ -60,7 +60,7 @@ public class ConvolutionalAutomatonMachine {
 	 * @param max_specificity
 	 * @param boost
 	 */
-	public ConvolutionalAutomatonMachine(HierarchicalEncoder encoder, int threshold, int nClauses, float max_specificity, boolean boost) {
+	public ConvolutionalAutomatonMachine(ConvolutionEncoder encoder, int threshold, int nClauses, float max_specificity, boolean boost) {
 		
 		this.encoder = encoder;
 		this.number_of_patches = encoder.getNumber_of_patches();
@@ -848,7 +848,7 @@ public class ConvolutionalAutomatonMachine {
 	 * Get the encoder reference
 	 * @return
 	 */
-	public HierarchicalEncoder getEncoder() {
+	public ConvolutionEncoder getEncoder() {
 		return encoder;
 	}
 	

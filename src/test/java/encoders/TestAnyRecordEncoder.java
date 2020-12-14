@@ -35,6 +35,7 @@ public class TestAnyRecordEncoder {
 		int[] enc = encoder.transform(all.get(all.size() - 1));
 		
 		assertArrayEquals(expected, enc);
+
 			
 		csv.close();
 	}

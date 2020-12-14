@@ -25,7 +25,7 @@ public class MultivariateConvolutionalAutomatonMachine {
 	private int T;
 	private boolean append_negated;
 	private boolean indexed;
-	private HierarchicalEncoder encoder;
+	private ConvolutionEncoder encoder;
 	
 	private ConvolutionalAutomatonMachine[] tm;
 	Random rng;
@@ -42,7 +42,7 @@ public class MultivariateConvolutionalAutomatonMachine {
 	private int[] global_patch;
 	private int[] global_y_index;
 
-	public MultivariateConvolutionalAutomatonMachine(HierarchicalEncoder encoder, int threshold, int nClasses, int nClauses, float max_specificity, boolean boost) {
+	public MultivariateConvolutionalAutomatonMachine(ConvolutionEncoder encoder, int threshold, int nClasses, int nClauses, float max_specificity, boolean boost) {
 		
 		this.encoder = encoder;
 		this.nClauses = nClauses;
@@ -285,7 +285,7 @@ public class MultivariateConvolutionalAutomatonMachine {
 		int patchX = 10; 
 		int patchY = 10;
 		
-		HierarchicalEncoder myEncoder = new HierarchicalEncoder(dimX, dimY, 1, patchX, patchY);
+		ConvolutionEncoder myEncoder = new ConvolutionEncoder(dimX, dimY, 1, patchX, patchY);
 		
 		
 
@@ -483,7 +483,7 @@ public class MultivariateConvolutionalAutomatonMachine {
 
 
 
-	public HierarchicalEncoder getEncoder() {
+	public ConvolutionEncoder getEncoder() {
 		return encoder;
 	}
 	
