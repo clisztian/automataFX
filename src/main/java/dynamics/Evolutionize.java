@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.ArrayUtils;
 
 import encoders.RecordEncoder;
+import output.OutputLabel;
 import records.AnyRecord;
 import timeseries.TimeSeries;
 import tsetlin.ConvolutionEncoder;
@@ -48,7 +49,7 @@ public class Evolutionize<V> {
 		
 		this.window = window;
 		this.sample_length = sample_length;
-		this.historical_length = historical_length;
+		this.setHistorical_length(historical_length);
 		encoded_records = new ArrayList<int[]>();
 		encoder = new RecordEncoder<V>();		
 	}
@@ -71,8 +72,17 @@ public class Evolutionize<V> {
 		encoder.initiate(record);
 	}
 	
+	public void initiate(AnyRecord record, int bits) {
+		encoder.initiate(record, bits);
+	}
+	
 	public void initiate(Class<?> val) {		
 		encoder.initiate(val);
+	}
+	
+	
+	public void addValue(V val) throws IllegalArgumentException, IllegalAccessException {		
+		encoder.addValue(val);
 	}
 	
 	public void fit() {
@@ -87,9 +97,7 @@ public class Evolutionize<V> {
 	}
 	
 	
-	public void addValue(V val) throws IllegalArgumentException, IllegalAccessException {		
-		encoder.addValue(val);
-	}
+
 	
 
 		
@@ -119,9 +127,24 @@ public class Evolutionize<V> {
 		encoded_records.add(encoded_val);		
 		historical.addHistory(encoded_val);
 		
-		return flatten(historical.getHistories());			
+		return conv_encoder.bit_encode(flatten(historical.getHistories()));			
 	}
 	
+	
+	/**
+	 * Simple addition of new sample to history
+	 * @param val
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 */
+	public void add(V val) throws IllegalArgumentException, IllegalAccessException {		
+		historical.addHistory(encoder.transform(val));	
+	}
+	
+	
+	public int[] get_last_sample() {	
+		return conv_encoder.bit_encode(flatten(historical.getHistories()));		
+	}
 	
 	
 	public int getWindow() {
@@ -164,5 +187,13 @@ public class Evolutionize<V> {
 	
 	public int getEncoderDimension() {
 		return dim_x;
+	}
+
+	public int getHistorical_length() {
+		return historical_length;
+	}
+
+	public void setHistorical_length(int historical_length) {
+		this.historical_length = historical_length;
 	}
 }

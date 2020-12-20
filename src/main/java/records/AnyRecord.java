@@ -11,7 +11,23 @@ public class AnyRecord {
 	private Object[] values;
 	private String[] field_names = null;
 		
-
+	public AnyRecord() {
+		field_names = null;
+	}
+	
+	public AnyRecord(String[] names) {
+		setField_names(names);
+	}
+	
+	public AnyRecord(Object[] values) {
+		setValues(values);
+	}
+	
+	public AnyRecord(String[] names, Object[] values) {
+		setField_names(names);
+		setValues(values);
+	}
+	
 	public Object[] getValues() {
 		return values;
 	}

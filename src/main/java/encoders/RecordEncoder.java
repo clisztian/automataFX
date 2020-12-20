@@ -131,6 +131,34 @@ public class RecordEncoder<V>  {
 		return this;
 	}
 	
+	
+	public RecordEncoder<V> initiate(AnyRecord record, int dim) {
+		
+		if(record.getField_names() != null) {
+			
+			field_names = record.getField_names();
+			encode_maps = new Encoder[field_names.length];
+						
+			for(int i = 0; i < record.getValues().length; i++) {
+				
+				if(field_names[i].contains("time") || field_names[i].contains("date")) {
+					encode_maps[i] = new TimeEncoder("timestamp", "yyyy-MM-dd HH:mm:ss");
+				}
+				else {
+					
+					if(record.getValues()[i] instanceof Double || record.getValues()[i] instanceof Float || record.getValues()[i] instanceof Integer) {
+						encode_maps[i] = new RealEncoder(field_names[i], dim);
+					}
+					else {
+						encode_maps[i] = new CategoricalEncoder(field_names[i]);
+					}
+				}				
+			}	
+		}
+		return this;
+	}
+	
+	
 	public void encoderTypes() {
 		
 		for(int i = 0; i < encode_maps.length; i++) {
