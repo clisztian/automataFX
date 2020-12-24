@@ -80,6 +80,9 @@ public class Evolutionize<V> {
 		encoder.initiate(val);
 	}
 	
+	public void initiate(Class<?> val, int bits) {	
+		encoder.initiate(val, bits);
+	}
 	
 	public void addValue(V val) throws IllegalArgumentException, IllegalAccessException {		
 		encoder.addValue(val);

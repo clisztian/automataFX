@@ -67,6 +67,38 @@ public class RecordEncoder<V>  {
 	}
 	
 	/**
+	 * Initiates a RecordEncoder with information from the class V
+	 * All double/float/int values are attributed to a real encoder
+	 * all String values associated with categorical encoder
+	 * @param val
+	 * @return
+	 */
+	public RecordEncoder<V> initiate(Class<?> val, int bits) {
+		
+		List<Field> fields = getPrivateFields(val);
+		encode_maps = new Encoder[fields.size()];
+		field_names = new String[fields.size()];
+		
+		int count = 0;
+		for(Field field : fields) {
+			
+			String type = field.getType().toString();
+			if(type.contains("double") || type.contains("float") || type.contains("int")) {							
+				encode_maps[count] = new RealEncoder(field.getName(), bits);				
+			}
+			else if(type.contains("Temporal")) {
+				encode_maps[count] = new TimeEncoder(field.getName(), "yyyy-MM-dd HH:mm:ss");
+			}
+			else {
+				encode_maps[count] = new CategoricalEncoder(field.getName());
+			}
+			field_names[count] = field.getName();
+			count++;
+		}
+		return this;
+	}
+	
+	/**
 	 * Intantiates a record encoder with a record containing field_names and a bit dimension
 	 * @param record
 	 * @param datetime_format
