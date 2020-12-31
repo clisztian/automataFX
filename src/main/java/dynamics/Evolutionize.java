@@ -37,7 +37,7 @@ public class Evolutionize<V> {
 	private ConvolutionEncoder conv_encoder;
 	private int dim_x;
 	private Histories historical;
-	private int historical_length;
+
 	
 	/**
 	 * Evolutionize instantiates a learning framework using a window and a lag_length
@@ -45,11 +45,11 @@ public class Evolutionize<V> {
 	 * @param window total size of the learning period
 	 * @param lag_length 
 	 */
-	public Evolutionize(int window, int sample_length, int historical_length) {
+	public Evolutionize(int window, int sample_length) {
 		
 		this.window = window;
 		this.sample_length = sample_length;
-		this.setHistorical_length(historical_length);
+
 		encoded_records = new ArrayList<int[]>();
 		encoder = new RecordEncoder<V>();		
 	}
@@ -192,11 +192,5 @@ public class Evolutionize<V> {
 		return dim_x;
 	}
 
-	public int getHistorical_length() {
-		return historical_length;
-	}
 
-	public void setHistorical_length(int historical_length) {
-		this.historical_length = historical_length;
-	}
 }

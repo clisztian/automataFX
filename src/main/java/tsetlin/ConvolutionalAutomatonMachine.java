@@ -617,7 +617,7 @@ public class ConvolutionalAutomatonMachine {
 	 * @param Xi
 	 * @return
 	 */
-	public int[] riskPrediction(int[] Xi) {
+	public int[] riskPrediction(int[] Xi, boolean positive_polarity) {
 		
 		int j, k;
 		int action_include, action_include_negated;
@@ -630,7 +630,8 @@ public class ConvolutionalAutomatonMachine {
 			int clause_chunk = j / 32;
 			int clause_pos = j % 32;
 			
-			if( ((clause_output[clause_chunk] & (1 << clause_pos)) != 0) && j % 2 == 0 ) {	
+			
+			if( ((clause_output[clause_chunk] & (1 << clause_pos)) != 0) && (j % 2 == 0 && positive_polarity)) {	
 				
 				for (k = 0; k < nFeatures; k++) {
 					
@@ -652,6 +653,11 @@ public class ConvolutionalAutomatonMachine {
 		}		
 		return risk_strength;		
 	}
+	
+	
+	
+	
+	
 	
 	
 	

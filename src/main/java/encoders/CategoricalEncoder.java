@@ -233,13 +233,18 @@ public class CategoricalEncoder implements Encoder<String> {
 	@Override
 	public String decoder(int[] enc) {
 		
-		int index = 0;
+		int index = -1;
 		for(int i = 0; i < enc.length; i++) {
 			if(enc[i] == 1) {
 				index = i; 
 				break;
 			}
 		}
+		
+		if(index == -1) {
+			return "none";
+		}
+		
 		return getKeyByValue(category_map, index);
 	}
 	

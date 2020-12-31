@@ -1,6 +1,7 @@
 package tsetlin;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -53,9 +54,7 @@ public class MultivariateConvolutionalAutomatonMachine {
 		this.T = threshold;
 
 		tm = new ConvolutionalAutomatonMachine[nClasses];
-		
-		System.out.println("Automaton Stats: " + threshold + " " + encoder.getNumber_of_features() + " " + nClauses);
-		
+				
 		for(int i = 0; i < nClasses; i++) {
 			tm[i] = new ConvolutionalAutomatonMachine(encoder, threshold, nClauses, max_specificity, boost).initialize();
 		}
@@ -486,8 +485,27 @@ public class MultivariateConvolutionalAutomatonMachine {
 	public ConvolutionEncoder getEncoder() {
 		return encoder;
 	}
-	
-	
+
+
+
+
+	/**
+	 * Gets the risk factors of any prediction, regardless of class
+	 * Assumes the class 0 is the "negative, or bad class" (fraud, failure, disease) etc
+	 * 
+	 * 
+	 * @param Xi
+	 * @return
+	 */
+	public int[] riskFactors(int[] Xi) {
+				
+		int[] risk_0 = tm[0].riskPrediction(Xi, true);
+		int[] risk_1 = tm[1].riskPrediction(Xi, false);
+				
+		int result[] = new int[risk_0.length];
+	    Arrays.setAll(result, i -> risk_0[i] + risk_1[i]);
+		return result;
+	}
 	
 	
 	

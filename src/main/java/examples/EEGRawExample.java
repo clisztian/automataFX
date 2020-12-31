@@ -52,7 +52,7 @@ public class EEGRawExample {
 		 */
 		AnyRecord any = new AnyRecord(new String[] {"value"}, new Double[] {0.0});
 				
-		evolve = new Evolutionize(patch_dim_y, dim_y, 1);		
+		evolve = new Evolutionize(patch_dim_y, dim_y);		
 		evolve.initiate(any, dim_x);
 		evolve.initiateConvolutionEncoder();
 		

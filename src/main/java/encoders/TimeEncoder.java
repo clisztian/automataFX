@@ -288,6 +288,14 @@ public class TimeEncoder implements Encoder<Temporal> {
 		
 	}
 	
+	public String[] getTemporalNames() {
+		String[] names = new String[time_encoders.size()];
+		for(int i = 0; i < time_encoders.size(); i++) {
+			names[i] = time_encoders.get(i).toString();
+		}
+		return names;
+	}
+	
 	
 	public String getFeature_name() {
 		return feature_name;
