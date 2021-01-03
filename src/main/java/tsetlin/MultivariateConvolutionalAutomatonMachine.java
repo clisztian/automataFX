@@ -493,14 +493,19 @@ public class MultivariateConvolutionalAutomatonMachine {
 	 * Gets the risk factors of any prediction, regardless of class
 	 * Assumes the class 0 is the "negative, or bad class" (fraud, failure, disease) etc
 	 * 
+	 * Target/pred class is the class that was predicted. But we would like to see what the stakes are in
+	 * predicting another class, alternative_class. 
+	 * 
+	 * This is estimated by computing the impact of the alternative class and combining it with the factors 
+	 * negatively impacting the predicted class
 	 * 
 	 * @param Xi
 	 * @return
 	 */
-	public int[] riskFactors(int[] Xi) {
+	public int[] riskFactors(int[] Xi, int pred_class, int alt_class) {
 				
-		int[] risk_0 = tm[0].riskPrediction(Xi, true);
-		int[] risk_1 = tm[1].riskPrediction(Xi, false);
+		int[] risk_0 = tm[alt_class].riskPrediction(Xi, true);
+		int[] risk_1 = tm[pred_class].riskPrediction(Xi, false);
 				
 		int result[] = new int[risk_0.length];
 	    Arrays.setAll(result, i -> risk_0[i] + risk_1[i]);

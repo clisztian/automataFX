@@ -2,23 +2,26 @@ package interpretability;
 
 public class Prediction {
 
-	private float[] local_feature_importance;
-	private float[] risk_features;
-	private int[] top_temporal;
-	private int[] top_categories;
-	
-	private GlobalRealFeatures local_exp;
+
 	private double probability;
 	private int pred_class;
 	
+	private GlobalRealFeatures[][] real_features;
+	private GlobalRealFeatures lag_features;
+	private GlobalTemporalFeatures[] temporal_features;
+	private GlobalCategoricalFeatures[] categorical_features;
 
+	private GlobalRealFeatures risk_lag_features;
+	private GlobalRealFeatures[][] risk_real_features;
+	private GlobalTemporalFeatures[] risk_temporal_features;
+	private GlobalCategoricalFeatures[] risk_categorical_features;
 	
-	public Prediction(float[] local, float[] risks, int[] top_fingerbits, int[] top_riskfingerbits, int pred_class, double probability) {
+	
+	public Prediction(int pred_class, double probability) {
 		
-		this.risk_features = risks;
-		this.setLocal_feature_importance(local);
 		this.pred_class = pred_class;
 		this.probability = probability;
+		
 	}
 	
 	
@@ -26,67 +29,93 @@ public class Prediction {
 		return probability;
 	}
 	
-	public void setProbability(double probability) {
+	public Prediction setProbability(double probability) {
 		this.probability = probability;
+		return this;
 	}
 
 	public int getPred_class() {
 		return pred_class;
 	}
 
-	public void setPred_class(int pred_class) {
+	public Prediction setPred_class(int pred_class) {
 		this.pred_class = pred_class;
+		return this;
 	}
 
-	public float[] getRisk_features() {
-		return risk_features;
+	public GlobalRealFeatures[][] getReal_features() {
+		return real_features;
 	}
 
-	public void setRisk_features(float[] risk_features) {
-		this.risk_features = risk_features;
+	public Prediction setReal_features(GlobalRealFeatures[][] real_features) {
+		this.real_features = real_features;
+		return this;
 	}
 
-
-
-
-	public float[] getLocal_feature_importance() {
-		return local_feature_importance;
+	public GlobalRealFeatures getLag_features() {
+		return lag_features;
 	}
 
-	public void setLocal_feature_importance(float[] local_feature_importance) {
-		this.local_feature_importance = local_feature_importance;
+	public Prediction setLag_features(GlobalRealFeatures lag_features) {
+		this.lag_features = lag_features;
+		return this;
 	}
 
-
-
-	public GlobalRealFeatures getLocal_exp() {
-		return local_exp;
+	public GlobalTemporalFeatures[] getTemporal_features() {
+		return temporal_features;
 	}
 
-
-	public void setLocal_exp(GlobalRealFeatures local_exp) {
-		this.local_exp = local_exp;
+	public Prediction setTemporal_features(GlobalTemporalFeatures[] temporal_features) {
+		this.temporal_features = temporal_features;
+		return this;
 	}
 
-
-	public int[] getTop_temporal() {
-		return top_temporal;
+	public GlobalCategoricalFeatures[] getCategorical_features() {
+		return categorical_features;
 	}
 
-
-	public void setTop_temporal(int[] top_temporal) {
-		this.top_temporal = top_temporal;
+	public Prediction setCategorical_features(GlobalCategoricalFeatures[] categorical_features) {
+		this.categorical_features = categorical_features;
+		return this;
 	}
 
-
-	public int[] getTop_categories() {
-		return top_categories;
+	public GlobalRealFeatures getRisk_lag_features() {
+		return risk_lag_features;
 	}
 
-
-	public void setTop_categories(int[] top_categories) {
-		this.top_categories = top_categories;
+	public Prediction setRisk_lag_features(GlobalRealFeatures risk_lag_features) {
+		this.risk_lag_features = risk_lag_features;
+		return this;
 	}
+
+	public GlobalRealFeatures[][] getRisk_real_features() {
+		return risk_real_features;
+	}
+
+	public Prediction setRisk_real_features(GlobalRealFeatures[][] risk_real_features) {
+		this.risk_real_features = risk_real_features;
+		return this;
+	}
+
+	public GlobalTemporalFeatures[] getRisk_temporal_features() {
+		return risk_temporal_features;
+	}
+
+	public Prediction setRisk_temporal_features(GlobalTemporalFeatures[] risk_temporal_features) {
+		this.risk_temporal_features = risk_temporal_features;
+		return this;
+	}
+
+	public GlobalCategoricalFeatures[] getRisk_categorical_features() {
+		return risk_categorical_features;
+		
+	}
+
+	public Prediction setRisk_categorical_features(GlobalCategoricalFeatures[] risk_categorical_features) {
+		this.risk_categorical_features = risk_categorical_features;
+		return this;
+	}
+
 	
 	
 	

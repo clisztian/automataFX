@@ -623,15 +623,16 @@ public class ConvolutionalAutomatonMachine {
 		int action_include, action_include_negated;
 	
 		int[] risk_strength = new int[2*nFeatures];
+		int positive_pol = 0;
 		
+		if(!positive_polarity) positive_pol = 1;
 		
 		for (j = 0; j < nClauses; j++) {
 		  
 			int clause_chunk = j / 32;
 			int clause_pos = j % 32;
 			
-			
-			if( ((clause_output[clause_chunk] & (1 << clause_pos)) != 0) && (j % 2 == 0 && positive_polarity)) {	
+			if( ((clause_output[clause_chunk] & (1 << clause_pos)) != 0) && j % 2 == positive_pol ) {	
 				
 				for (k = 0; k < nFeatures; k++) {
 					
@@ -914,15 +915,7 @@ public class ConvolutionalAutomatonMachine {
 	
 	public static void main(String[] args) throws Exception {
 		
-		DecimalFormat df = new DecimalFormat("#0.00");
-		
-		int threshold = 5000;
-		int nClauses = 1000;
-		
 
-	
-		
- 		
  		
 	}
 

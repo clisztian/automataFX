@@ -23,9 +23,15 @@ public class EEGRawExample {
 	@SuppressWarnings("rawtypes")
 	public static void main(String[] args) throws IOException, IllegalArgumentException, IllegalAccessException {
 		
-		EEGRawExample raw = new EEGRawExample();
-		raw.testEEGRawExample();
+//		EEGRawExample raw = new EEGRawExample();
+//		raw.testEEGRawExample();
 		
+		boolean thishere = false;
+		boolean that = false;
+		
+		boolean test = thishere && that;
+		
+		System.out.print(test);
 	}
 
 	

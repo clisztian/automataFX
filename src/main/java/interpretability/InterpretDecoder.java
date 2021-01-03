@@ -3,6 +3,7 @@ package interpretability;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Random;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
@@ -35,6 +36,7 @@ import tsetlin.MultivariateConvolutionalAutomatonMachine;
 
 public class InterpretDecoder<V> {
 
+	private Random rng;
 	private Evolutionize<V> evolution;
 	private MultivariateConvolutionalAutomatonMachine automaton;
 
@@ -52,6 +54,10 @@ public class InterpretDecoder<V> {
 	private int n_real_features;
 	private int n_categorical_features;
 	private int n_time_features;
+	private GlobalRealFeatures risk_lag_features;
+	private GlobalRealFeatures[][] risk_real_features;
+	private GlobalTemporalFeatures[] risk_temporal_features;
+	private GlobalCategoricalFeatures[] risk_categorical_features;
 	
 	
 	/**
@@ -85,7 +91,7 @@ public class InterpretDecoder<V> {
 			else if(evolution.getEncoder().getEncode_maps()[i] instanceof TimeEncoder) n_time_features++;
 			else if(evolution.getEncoder().getEncode_maps()[i] instanceof CategoricalEncoder) n_categorical_features++;	
 		}
-		
+		rng = new Random();
 	}
 		
 	/**
@@ -145,17 +151,21 @@ public class InterpretDecoder<V> {
 		int[] pred = automaton.predict_interpret(evolution.get_last_sample());	
 		
 		int myclass = pred[pred.length - 1];
+		int alt_class = rng.nextInt(automaton.getNumberClasses());
+		while(myclass == alt_class) {
+			alt_class = rng.nextInt(automaton.getNumberClasses());
+		}
 		
 		int[] allbits = ArrayUtils.subarray(pred, 0, pred.length-1);
 		
-		localFeatureImportance(allbits);
+		double probability = automaton.getMachine(myclass).getClass_probability();
+		int[] risks = automaton.riskFactors(evolution.get_last_sample(), myclass, alt_class);
+	
+		Prediction prediction = new Prediction(myclass, probability);
 		
+		localRiskAndFeatureImportance(prediction, allbits, risks);
 		
-		
-		
-		
-		
-		return null;
+		return prediction;
 			
 	}
 	
@@ -232,6 +242,112 @@ public class InterpretDecoder<V> {
 	}
 	
 
+	
+
+	private void localRiskAndFeatureImportance(Prediction prediction, int[] local_features, int[] risk_features) {
+		
+		int patch_dim_x = dim_x;
+	
+		int n_bit_features = automaton.getNumberFeatures();
+
+		int[] temp_structure_pos = ArrayUtils.subarray(local_features, 0, dim_y - patch_dim_y);
+		int[] temp_structure_neg = ArrayUtils.subarray(local_features, n_bit_features, n_bit_features + (dim_y - patch_dim_y));
+		
+	
+		lag_features = decodeRealFeatures("Lag Importance", null, temp_structure_pos, temp_structure_neg); 	
+		real_features = new GlobalRealFeatures[patch_dim_y][n_real_features];
+		temporal_features = new GlobalTemporalFeatures[patch_dim_y];
+		categorical_features = new GlobalCategoricalFeatures[patch_dim_y];
+		
+		risk_lag_features = decodeRealFeatures("Lag Risk", null, 
+				ArrayUtils.subarray(risk_features, 0, dim_y - patch_dim_y), ArrayUtils.subarray(risk_features, n_bit_features, n_bit_features + (dim_y - patch_dim_y))); 	
+		risk_real_features = new GlobalRealFeatures[patch_dim_y][n_real_features];
+		risk_temporal_features = new GlobalTemporalFeatures[patch_dim_y];
+		risk_categorical_features = new GlobalCategoricalFeatures[patch_dim_y];
+		
+		int p_x = 0;
+		int patch_pos = 0;
+
+		int n_real_features_count = 0;
+		int start = (dim_y - patch_dim_y) + (dim_x - patch_dim_x);
+		for (int p_y = 0; p_y < patch_dim_y; ++p_y) {
+			 
+			 p_x = 0;
+			 for(int feat_dim = 0; feat_dim < n_global_features; feat_dim++) { 
+				
+				 int bit_dim = evolution.getEncoder().getEncode_maps()[feat_dim].getBitDimension();
+				 int[] local_pos = new int[bit_dim];
+				 int[] local_neg = new int[bit_dim];
+				 
+				 int[] risk_local_pos = new int[bit_dim];
+				 int[] risk_local_neg = new int[bit_dim];
+				 
+				 for(int k = 0; k < bit_dim; k++) {
+					 
+				    patch_pos = start + p_y * patch_dim_x + p_x;	
+				    
+					local_pos[k] = local_features[patch_pos];
+					local_neg[k] = local_features[n_bit_features + patch_pos];	
+					
+					risk_local_pos[k] = risk_features[patch_pos];
+					risk_local_neg[k] = risk_features[n_bit_features + patch_pos];	
+					
+				    p_x++;
+				 }
+				 
+				 /**
+				  * If its a real encoder, map it to a global real decoder
+				  */
+				 if(evolution.getEncoder().getEncode_maps()[feat_dim] instanceof RealEncoder) {
+					 
+					 real_features[p_y][n_real_features_count] = decodeRealFeatures(evolution.getEncoder().getField_names()[feat_dim], 
+							 (RealEncoder)evolution.getEncoder().getEncode_maps()[feat_dim], 
+							 local_pos, local_neg);
+					 
+					 risk_real_features[p_y][n_real_features_count] = decodeRealFeatures(evolution.getEncoder().getField_names()[feat_dim], 
+							 (RealEncoder)evolution.getEncoder().getEncode_maps()[feat_dim], 
+							 risk_local_pos, risk_local_neg);
+					 
+					 n_real_features_count++;
+				 }
+				 /**
+				  * If its a time encoder, map it to a global time decoder
+				  */
+				 else if(evolution.getEncoder().getEncode_maps()[feat_dim] instanceof TimeEncoder) {
+					 
+					 temporal_features[p_y] = decodeTemporalFeatures(evolution.getEncoder().getField_names()[feat_dim], 
+							 (TimeEncoder)evolution.getEncoder().getEncode_maps()[feat_dim], local_pos, local_neg);
+					 
+					 risk_temporal_features[p_y] = decodeTemporalFeatures(evolution.getEncoder().getField_names()[feat_dim], 
+							 (TimeEncoder)evolution.getEncoder().getEncode_maps()[feat_dim], risk_local_pos, risk_local_neg);
+				 }
+				 /**
+				  * If its a categorical encoder, map it to a global categorical decoder
+				  */
+				 else if(evolution.getEncoder().getEncode_maps()[feat_dim] instanceof CategoricalEncoder) {
+					 
+					 categorical_features[p_y] = decodeCategoricalFeatures(evolution.getEncoder().getField_names()[feat_dim], 
+							 (CategoricalEncoder)evolution.getEncoder().getEncode_maps()[feat_dim], local_pos, local_neg);
+					 
+					 risk_categorical_features[p_y] = decodeCategoricalFeatures(evolution.getEncoder().getField_names()[feat_dim], 
+							 (CategoricalEncoder)evolution.getEncoder().getEncode_maps()[feat_dim], risk_local_pos, risk_local_neg);
+				 }
+			 }
+		}
+		
+		prediction.setCategorical_features(categorical_features)
+				  .setLag_features(lag_features)
+				  .setReal_features(real_features)
+				  .setTemporal_features(risk_temporal_features)
+				  .setRisk_categorical_features(risk_categorical_features)
+				  .setRisk_lag_features(risk_lag_features)
+				  .setRisk_real_features(risk_real_features)
+				  .setRisk_temporal_features(risk_temporal_features);
+		
+	}
+	
+	
+	
 	
 
 	/**
@@ -495,6 +611,22 @@ public class InterpretDecoder<V> {
 
 	public GlobalCategoricalFeatures[] getCategorical_features() {
 		return categorical_features;
+	}
+
+	public GlobalRealFeatures getRisk_lag_features() {
+		return risk_lag_features;
+	}
+
+	public GlobalRealFeatures[][] getRisk_Real_features() {
+		return risk_real_features;
+	}
+
+	public GlobalTemporalFeatures[] getRisk_Temporal_features() {
+		return risk_temporal_features;
+	}
+
+	public GlobalCategoricalFeatures[] getRisk_Categorical_features() {
+		return risk_categorical_features;
 	}
 
 
