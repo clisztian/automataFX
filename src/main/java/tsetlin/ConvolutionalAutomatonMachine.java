@@ -215,9 +215,7 @@ public class ConvolutionalAutomatonMachine {
 				
 				negative_polarity_votes += clause_weights[j] * ((clause_output[clause_chunk] & (1 << clause_pos)) != 0 ? 1 : 0);
 				neg_sum_weights += clause_weights[j];
-			}
-			
-			
+			}	
 		}
 
 		class_sum = (class_sum > T) ? T : class_sum;

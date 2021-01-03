@@ -1,4 +1,4 @@
-package interpretability;
+package tsetlin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,9 +13,12 @@ import encoders.CategoricalEncoder;
 import encoders.RealEncoder;
 import encoders.RecordEncoder;
 import encoders.TimeEncoder;
+import interpretability.GlobalCategoricalFeatures;
+import interpretability.GlobalRealFeatures;
+import interpretability.GlobalTemporalFeatures;
+import interpretability.Prediction;
 import records.AnyRecord;
 import records.TimeTrois;
-import tsetlin.MultivariateConvolutionalAutomatonMachine;
 
 /**
  * 
@@ -34,7 +37,7 @@ import tsetlin.MultivariateConvolutionalAutomatonMachine;
  *
  */
 
-public class InterpretDecoder<V> {
+public class AutomataLearning<V> {
 
 	private Random rng;
 	private Evolutionize<V> evolution;
@@ -44,20 +47,23 @@ public class InterpretDecoder<V> {
 	private int patch_dim_y;
 	private int dim_x;
 	
+	private int n_global_features;
+	private int n_real_features;
+	private int n_categorical_features;
+	private int n_time_features;
+	
 	private GlobalRealFeatures[][] real_features;
 	private GlobalRealFeatures lag_features;
 	private GlobalTemporalFeatures[] temporal_features;
 	private GlobalCategoricalFeatures[] categorical_features;
 	
-	
-	private int n_global_features;
-	private int n_real_features;
-	private int n_categorical_features;
-	private int n_time_features;
 	private GlobalRealFeatures risk_lag_features;
 	private GlobalRealFeatures[][] risk_real_features;
 	private GlobalTemporalFeatures[] risk_temporal_features;
 	private GlobalCategoricalFeatures[] risk_categorical_features;
+	
+
+
 	
 	
 	/**
@@ -67,7 +73,7 @@ public class InterpretDecoder<V> {
 	 * @param dim_x
 	 * @param val
 	 */
-	public InterpretDecoder(int dim_y, int patch_dim_y, int dim_x, V val, int nClauses, int threshold,  float max_specificity, int nClasses) {
+	public AutomataLearning(int dim_y, int patch_dim_y, int dim_x, V val, int nClauses, int threshold,  float max_specificity, int nClasses) {
 		
 		evolution = new Evolutionize(patch_dim_y, dim_y);		
 		
@@ -119,6 +125,42 @@ public class InterpretDecoder<V> {
 		return automaton.update(evolution.get_last_sample(), label);	
 	}
 	
+	
+	/**
+	 * Updates the evolution chain and predicts the output
+	 * @param val
+	 * @param label
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 */
+	public Prediction update_predict(V val, int label) throws IllegalArgumentException, IllegalAccessException {
+		
+		evolution.add(val);
+		
+		int update_pred = automaton.update(evolution.get_last_sample(), label);	
+		int[] pred = automaton.predict_interpret(evolution.get_last_sample());	
+		
+		int myclass = pred[pred.length - 1];
+		int alt_class = rng.nextInt(automaton.getNumberClasses());
+		while(myclass == alt_class) {
+			alt_class = rng.nextInt(automaton.getNumberClasses());
+		}
+		
+		int[] allbits = ArrayUtils.subarray(pred, 0, pred.length-1);
+		
+		double probability = automaton.getMachine(myclass).getClass_probability();
+		int[] risks = automaton.riskFactors(evolution.get_last_sample(), myclass, alt_class);
+	
+		Prediction prediction = new Prediction(myclass, probability);
+		
+		localRiskAndFeatureImportance(prediction, allbits, risks);
+		
+		return prediction;
+		
+	}
+	
+	
 	/**
 	 * Update with one sequence to classify
 	 * @param vals
@@ -129,14 +171,13 @@ public class InterpretDecoder<V> {
 	 */
 	public int update(ArrayList<V> vals, int label) throws IllegalArgumentException, IllegalAccessException {		
 		
-		if(vals.size() == dim_y) {			
-			for(int i = 0; i < vals.size(); i++) {
-				evolution.add(vals.get(i));
-			}		
+		for(int i = 0; i < vals.size(); i++) {
+			evolution.add(vals.get(i));
 		}		
 		return automaton.update(evolution.get_last_sample(), label);	
 	}
 
+	
 	
 	/**
 	 * Add new single value and predict
@@ -168,6 +209,43 @@ public class InterpretDecoder<V> {
 		return prediction;
 			
 	}
+	
+	
+	/**
+	 * Add new single value and predict
+	 * @param val
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 */
+	public Prediction predict(ArrayList<V> vals) throws IllegalArgumentException, IllegalAccessException {
+		
+		
+		for(int i = 0; i < vals.size(); i++) {
+			evolution.add(vals.get(i));
+		}
+		
+		int[] pred = automaton.predict_interpret(evolution.get_last_sample());	
+		
+		int myclass = pred[pred.length - 1];
+		int alt_class = rng.nextInt(automaton.getNumberClasses());
+		while(myclass == alt_class) {
+			alt_class = rng.nextInt(automaton.getNumberClasses());
+		}
+		
+		int[] allbits = ArrayUtils.subarray(pred, 0, pred.length-1);
+		
+		double probability = automaton.getMachine(myclass).getClass_probability();
+		int[] risks = automaton.riskFactors(evolution.get_last_sample(), myclass, alt_class);
+	
+		Prediction prediction = new Prediction(myclass, probability);
+		
+		localRiskAndFeatureImportance(prediction, allbits, risks);
+		
+		return prediction;
+			
+	}
+	
 	
 	
 

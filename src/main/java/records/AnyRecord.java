@@ -10,9 +10,15 @@ public class AnyRecord {
 
 	private Object[] values;
 	private String[] field_names = null;
-		
+	
+	private Integer label = null;
+	
 	public AnyRecord() {
 		field_names = null;
+	}
+	
+	public AnyRecord(int label) {
+		this.label = label;
 	}
 	
 	public AnyRecord(String[] names) {
@@ -54,5 +60,13 @@ public class AnyRecord {
 		
 		return sb.toString();
 		
+	}
+
+	public Integer getLabel() {
+		return label;
+	}
+
+	public void setLabel(Integer label) {
+		this.label = label;
 	}
 }
