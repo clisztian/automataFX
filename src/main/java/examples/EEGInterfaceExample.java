@@ -8,6 +8,10 @@ import java.util.Collections;
 
 import com.csvreader.CsvReader;
 
+import eu.hansolo.fx.monitor.Monitor;
+import eu.hansolo.fx.monitor.MonitorBuilder;
+import eu.hansolo.fx.monitor.tools.Theme;
+import eu.hansolo.fx.monitor.tools.Timespan;
 import interpretability.Prediction;
 import records.AnyRecord;
 import tsetlin.AutomataLearning;
@@ -49,8 +53,8 @@ public class EEGInterfaceExample {
 		int patch_dim_y = 20;
 		int n_samples = 200;
 		int threshold = 160;
-		int nClauses = 32;
-		float S = 10f;
+		int nClauses = 64;
+	
 		float max_specificity = 2f;
 		int nClasses = 2;
 		
@@ -64,7 +68,7 @@ public class EEGInterfaceExample {
 		for(int i = 0; i < n_samples; i++) training_sample_list.add(i);
 		Collections.shuffle(training_sample_list);
 		
-		int n_train = 140;
+		int n_train = 14;
 		for(int i = 0; i < n_train; i++) {
 			
 			int samp = training_sample_list.get(i);

@@ -73,6 +73,8 @@ public class MultivariateConvolutionalAutomatonMachine {
 
 	public int update(int Xi[], int target_class) {
 		
+		if(nClasses == 1) return update_regression(Xi, target_class);
+		
 		//System.out.println("Target class: " + target_class);
 		tm[target_class].update(Xi, 1);
 
@@ -87,12 +89,22 @@ public class MultivariateConvolutionalAutomatonMachine {
 	}
 
 
+	private int update_regression(int Xi[], int target) {	
+		return tm[0].update_regression(Xi, target);	
+	}
+	
+	private int predict_regression(int[] X) {		
+		return tm[0].score_regression(X);	
+	}
+	
 	/**
 	 * Returns the max class 
 	 * @param X
 	 * @return
 	 */
 	public int predict(int[] X) {
+		
+		if(nClasses == 1) return predict_regression(X);
 		
 		int max_class_sum = tm[0].score(X);
 		

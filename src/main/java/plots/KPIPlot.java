@@ -163,6 +163,88 @@ public class KPIPlot<V> {
     }
     
     
+
+    public LineChart<LocalDateTime, Number> plotKPI(String name, List<V> anySeries, List<Float> predictions) throws IllegalArgumentException, IllegalAccessException {
+    	
+    	LineChart<LocalDateTime, Number> lineChart;
+    	
+    	final StringConverter<LocalDateTime> STRING_CONVERTER = new StringConverter<LocalDateTime>() {
+            @Override public String toString(LocalDateTime localDateTime) {
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yy\nHH:mm:ss");
+                return dtf.format(localDateTime);
+            }
+            @Override public LocalDateTime fromString(String s) {
+                return LocalDateTime.parse(s);
+            }
+        };        
+
+        
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel(name);
+
+        DateAxis310 xAxis = new DateAxis310();
+        xAxis.setTickLabelFormatter(STRING_CONVERTER);
+        
+        XYChart.Series<LocalDateTime, Number>[] all_series = new XYChart.Series[numerical_field_count];
+        XYChart.Series<LocalDateTime, Number> pred_ict = new XYChart.Series();
+        
+        List<XYChart.Data<LocalDateTime, Number>>[] data = new ArrayList[numerical_field_count];
+        List<XYChart.Data<LocalDateTime, Number>> output = new ArrayList();
+        
+        for(int i = 0; i < numerical_field_count; i++) {
+        	all_series[i] = new XYChart.Series<LocalDateTime, Number>();
+        	all_series[i].setName(plot_fields.get(i).getName());
+        	data[i] = new ArrayList<>();
+        }
+
+        lineChart = new LineChart<>(xAxis, yAxis);
+        lineChart.setTitle("KPI Chart for " + name);
+        
+    
+        lineChart.setAnimated(false);
+        xAxis.setTickLabelFormatter(STRING_CONVERTER);
+          
+        
+        if(anySeries != null && anySeries.size() > 0 && all_series.length > 0) {
+        	
+        	lineChart.getData().addAll(all_series);
+        	lineChart.getData().add(pred_ict);
+            
+        	series_min = Double.MAX_VALUE;
+        	series_max = -Double.MAX_VALUE;
+        	
+        	for(int i = 0; i < anySeries.size(); i++) {
+        		
+        		Temporal time = (Temporal)temporal_field.get(anySeries.get(i));	
+        		
+        		for(int k = 0; k < plot_fields.size(); k++) {
+        		
+        			float value = (float)plot_fields.get(k).get(anySeries.get(i));		
+        			data[k].add(new XYChart.Data<>(LocalDateTime.parse(time.getDate_time_string(), formatter), value));     	
+        			
+        			if(value < series_min) series_min = value;
+                	else if(value > series_max) series_max = value;
+        			
+        		}
+        		output.add(new XYChart.Data<>(LocalDateTime.parse(time.getDate_time_string(), formatter), predictions.get(i)));
+        	}
+        	
+        	
+        	
+        	for(int k = 0; k < plot_fields.size(); k++) {        		
+        		all_series[k].getData().setAll(data[k]); 		
+        	}
+        	pred_ict.getData().setAll(output);
+            	
+        }
+        lineChart.setBackground(back);
+        
+        return lineChart;
+    }
+    
+    
+    
+    
     private void applyDataPointMouseEvents(final XYChart.Series SERIES) {                
         Platform.runLater(new Runnable() {
             @Override public void run() {                                                

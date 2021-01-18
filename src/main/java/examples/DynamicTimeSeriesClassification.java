@@ -45,7 +45,7 @@ public class DynamicTimeSeriesClassification {
 	
 	private int dim_x = 30; //the real-valued dimension
 	private int dim_y = 24; //the global lag dimension
-	private int patch_dim_y = 24; //the sliding window function dimension
+	private int patch_dim_y = 4; //the sliding window function dimension
 
 	
 	
@@ -166,7 +166,7 @@ public class DynamicTimeSeriesClassification {
 	
 	public void classification(int N) throws IllegalArgumentException, IllegalAccessException {
 		
-		
+		//sampleData(N);
 		sampleStochasticData(N);
 		
 		/**

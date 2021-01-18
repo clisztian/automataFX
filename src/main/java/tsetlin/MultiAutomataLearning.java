@@ -1,5 +1,6 @@
 package tsetlin;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ import records.TimeTrois;
  *
  */
 
-public class AutomataLearning<V> {
+public class MultiAutomataLearning<V> {
 
 	private Random rng;
 	private Evolutionize<V> evolution;
@@ -66,9 +67,6 @@ public class AutomataLearning<V> {
 	private GlobalTemporalFeatures[] risk_temporal_features;
 	private GlobalCategoricalFeatures[] risk_categorical_features;
 	
-
-
-	
 	
 	/**
 	 * Instantiates a decoder with a generic V val
@@ -77,7 +75,7 @@ public class AutomataLearning<V> {
 	 * @param dim_x
 	 * @param val
 	 */
-	public AutomataLearning(int dim_y, int patch_dim_y, int dim_x, V val, int nClauses, int threshold,  float max_specificity, int nClasses) {
+	public MultiAutomataLearning(int dim_y, int patch_dim_y, int dim_x, V val, int nClauses, int threshold,  float max_specificity, int nClasses) {
 		
 		this.dim_x = dim_x;
 		this.dim_y = dim_y;
@@ -128,7 +126,7 @@ public class AutomataLearning<V> {
 	 * @param month_of_year
 	 * @param week_of_year
 	 */
-	public AutomataLearning(int dim_y, int patch_dim_y, int dim_x, V val, int nClauses, int threshold,  float max_specificity, int nClasses, 
+	public MultiAutomataLearning(int dim_y, int patch_dim_y, int dim_x, V val, int nClauses, int threshold,  float max_specificity, int nClasses, 
 			boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year) {
 		
 		this.dim_x = dim_x;
@@ -319,11 +317,32 @@ public class AutomataLearning<V> {
 			
 	}
 	
-	public float predict_regression(V val) throws IllegalArgumentException, IllegalAccessException {
+	public Prediction predict_regression(V val) throws IllegalArgumentException, IllegalAccessException {
 		
 		evolution.add(val);
-		return output.get(0).decode(automaton.predict(evolution.get_last_sample()));
+		int[] pred = automaton.predict_interpret(evolution.get_last_sample());	
 		
+		int myclass = pred[pred.length - 1];
+		int alt_class = rng.nextInt(automaton.getNumberClasses());
+		while(myclass == alt_class) {
+			alt_class = rng.nextInt(automaton.getNumberClasses());
+		}
+		
+		float mypred = output.get(0).decode(myclass); 
+		float alt_pred = output.get(0).decode(alt_class); 
+		
+		int[] allbits = ArrayUtils.subarray(pred, 0, pred.length-1);
+		
+		double probability = automaton.getMachine(myclass).getClass_probability();
+		int[] risks = automaton.riskFactors(evolution.get_last_sample(), myclass, alt_class);
+	
+		Prediction prediction = new Prediction(myclass, probability);
+		prediction.setRegression_prediction(mypred);
+		
+		localRiskAndFeatureImportance(prediction, allbits, risks);
+		
+		return prediction;
+				
 	}
 	
 	public float update_regression(V val, float target) throws IllegalArgumentException, IllegalAccessException {
@@ -333,10 +352,9 @@ public class AutomataLearning<V> {
 		evolution.add(val);
 		
 		int pred = automaton.update(evolution.get_last_sample(), level);
-		System.out.println(target + " " + level + " " + pred);
+		//System.out.println(target + " " + output.get(0).decode(pred) + " " + level + " " + pred );
 		
-		return output.get(0).decode(pred);
-		
+		return output.get(0).decode(pred);	
 	}
 
 	public void buildRealRegressionDecoders() {
@@ -543,13 +561,13 @@ public class AutomataLearning<V> {
 	 */
 	public GlobalRealFeatures decodeRealFeatures(String name, RealEncoder encoder, int[] pos_cont, int[] neg_cont) {
 		
-		for(int i = 0; i < pos_cont.length; i++) {
-			System.out.print(pos_cont[i] + " ");
-		}
-		System.out.println("");
-		for(int i = 0; i < pos_cont.length; i++) {
-			System.out.print(neg_cont[i] + " ");
-		}
+//		for(int i = 0; i < pos_cont.length; i++) {
+//			System.out.print(pos_cont[i] + " ");
+//		}
+//		System.out.println("");
+//		for(int i = 0; i < pos_cont.length; i++) {
+//			System.out.print(neg_cont[i] + " ");
+//		}
 
 		
 		
@@ -584,7 +602,7 @@ public class AutomataLearning<V> {
 				first_zero = k;
 			}
 		}
-		System.out.print(" [" + last_index  + ", " + first_index + "], [ " + first_zero + ", " + last_zero + "]\n");			
+		//System.out.print(" [" + last_index  + ", " + first_index + "], [ " + first_zero + ", " + last_zero + "]\n");			
         global.setValues(name, pos_mean, neg_mean, pos_cont, neg_cont, new int[] {last_index, first_index}, new int[] {first_zero, last_zero});
         
         if(encoder != null) {
@@ -707,7 +725,7 @@ public class AutomataLearning<V> {
 					first_zero = j;
 				}
 			}
-			System.out.print(" [" + last_index  + ", " + first_index + "], [ " + first_zero + ", " + last_zero + "]\n");			
+			//System.out.print(" [" + last_index  + ", " + first_index + "], [ " + first_zero + ", " + last_zero + "]\n");			
 			temporal_features.setValues(encoder.getTime_encoders().get(k).toString(), pos_mean, neg_mean, pos_cont, neg_cont, new int[] {last_index, first_index}, new int[] {first_zero, last_zero});
 		}
 		
@@ -832,3 +850,4 @@ public class AutomataLearning<V> {
 	
 	
 }
+

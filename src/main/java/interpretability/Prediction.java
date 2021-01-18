@@ -5,6 +5,8 @@ public class Prediction {
 
 	private double probability;
 	private int pred_class;
+	private float[] pred_probabilities;
+	private float regression_prediction;
 	
 	private GlobalRealFeatures[][] real_features;
 	private GlobalRealFeatures lag_features;
@@ -114,6 +116,26 @@ public class Prediction {
 	public Prediction setRisk_categorical_features(GlobalCategoricalFeatures[] risk_categorical_features) {
 		this.risk_categorical_features = risk_categorical_features;
 		return this;
+	}
+
+
+	public float getRegression_prediction() {
+		return regression_prediction;
+	}
+
+
+	public void setRegression_prediction(float regression_prediction) {
+		this.regression_prediction = regression_prediction;
+	}
+
+
+	public float[] getPred_probabilities() {
+		return pred_probabilities;
+	}
+
+
+	public void setPred_probabilities(float[] pred_probabilities) {
+		this.pred_probabilities = pred_probabilities;
 	}
 
 	

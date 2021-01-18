@@ -204,9 +204,10 @@ public class TimeSeriesClassification {
 		
 		
 
+		TimeSeriesClassification classify = new TimeSeriesClassification(dim_x, dim_y, patch_dim_y, n_clauses, threshold);
+		classify.testTimeSeries(400);
 		
 		
-		//classify.testTimeSeries(400);
 	}
 	
 	

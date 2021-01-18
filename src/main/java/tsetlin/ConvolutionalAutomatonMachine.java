@@ -51,6 +51,8 @@ public class ConvolutionalAutomatonMachine {
 	private int[] clause_index;
 	private double class_probability;
 
+	private ArrayList<Integer> regression_clauses;
+
 	/**
 	 * Instantiates a general convolutional automata machine
 	 * with an encoder, threshold, and other parameters
@@ -293,11 +295,16 @@ public class ConvolutionalAutomatonMachine {
 	/*** The Regression Tsetlin Machine ***/
 	/**************************************/
 
-	/* Sum up the votes for each class */
+	/* Sum up the votes for each class 
+	 * 
+	 * Counts which clauses are supporting positive reinforcement
+	 * 
+	 * */
 	public int sum_up_class_votes_regression() {
 		
 		int class_sum = 0;
 
+		regression_clauses = new ArrayList<Integer>();
 		for (int j = 0; j < nClauses; j++) {
 			
 			int clause_chunk = j / 32;
@@ -307,9 +314,8 @@ public class ConvolutionalAutomatonMachine {
 			
 		    class_sum += clause_weights[j] * ((clause_output[clause_chunk] & (1 << clause_pos)) != 0 ? 1:0);		
 			
-			//class_sum += ((clause_output[clause_chunk] & (1 << clause_pos)) != 0 ? 1:0);
+		    regression_clauses.add(j);
 			
-			//System.out.println("Outcome: " + Integer.toBinaryString(clause_output[clause_chunk]) + "  " + Integer.toBinaryString((clause_output[clause_chunk] & (1 << clause_pos))));
 		}
 		//System.out.println("Class sum: " + class_sum);
 		class_sum = (class_sum > T) ? T : class_sum;

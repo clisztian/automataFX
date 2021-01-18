@@ -67,45 +67,75 @@ public class RealEncoder implements Encoder<Float> {
 	 * This assumes the data is more or less distributed uniform across a range
 	 * all_split_values
 	 */
+//	public void fit_uniform() {
+//		
+//		List<Float> uv = values.stream().distinct().collect(Collectors.toList());
+//		Collections.sort(uv);
+//			
+//		List<Float> split_vals = new ArrayList<Float>();
+//		if(uv.size() > max_bits) {
+//				
+//			float step_size = 1f*uv.size()/max_bits;
+//			float pos = 0f;
+//				
+//			while((int)pos < uv.size() && split_vals.size() < max_bits) {
+//
+//				split_vals.add(log(uv.get((int)(pos))));		
+//				pos += step_size;
+//			}				
+//		}
+//		else split_vals = uv;
+//		
+//		/**
+//		 * if discrepency, add dummy values at end
+//		 */
+//		if(split_vals.size() < max_bits) {
+//			
+//			int disc = max_bits - split_vals.size();
+//			float val = split_vals.get(split_vals.size() - 1);
+//			
+//			for(int i = 0; i < disc; i++) {
+//				split_vals.add(val + (float)i);
+//			}
+//		}
+//		
+//		all_split_values = new float[split_vals.size()];
+//		for(int k = 0; k < all_split_values.length; k++) all_split_values[k] = split_vals.get(k);		
+//		number_of_features = all_split_values.length;						
+//	}
+	
+
 	@Override
 	public void fit_uniform() {
 		
 		List<Float> uv = values.stream().distinct().collect(Collectors.toList());
 		Collections.sort(uv);
-			
+		
+		float min = log(uv.get(0));
+		float max = log(uv.get(uv.size()-1));
+		
+		float delta = (max - min)/(max_bits-1);
+		
 		List<Float> split_vals = new ArrayList<Float>();
+		
+		float val = min;
+		
 		if(uv.size() > max_bits) {
-				
-			float step_size = 1f*uv.size()/max_bits;
-			float pos = 0f;
-				
-			while((int)pos < uv.size() && split_vals.size() < max_bits) {
-
-				split_vals.add(log(uv.get((int)(pos))));		
-				pos += step_size;
-			}				
+			while (val < max) {		
+				split_vals.add(val);
+				val+= delta;		
+			}
 		}
 		else split_vals = uv;
 		
-		/**
-		 * if discrepency, add dummy values at end
-		 */
-		if(split_vals.size() < max_bits) {
-			
-			int disc = max_bits - split_vals.size();
-			float val = split_vals.get(split_vals.size() - 1);
-			
-			for(int i = 0; i < disc; i++) {
-				split_vals.add(val + (float)i);
-			}
-		}
-		
 		all_split_values = new float[split_vals.size()];
+		System.out.println("Size: " + all_split_values.length);
+		
 		for(int k = 0; k < all_split_values.length; k++) all_split_values[k] = split_vals.get(k);		
 		number_of_features = all_split_values.length;						
 	}
 	
-
+	
 	/**
 	 * Fits a dynamic binarizer to the data with maximum max_bits
 	 * Assumes the data is not distributed uniform

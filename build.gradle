@@ -43,6 +43,9 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar']) 
     // https://mvnrepository.com/artifact/org.openjfx/javafx
 
+	// https://mvnrepository.com/artifact/eu.hansolo/Medusa
+	compile group: 'eu.hansolo', name: 'Medusa', version: '11.5'
+
 
     
 }

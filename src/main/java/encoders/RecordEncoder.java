@@ -12,6 +12,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import encoders.TimeEncoder.Time_Encoder;
 import records.AnyRecord;
 import records.TimeIndicator;
 
@@ -88,6 +89,59 @@ public class RecordEncoder<V>  {
 			}
 			else if(type.contains("Temporal")) {
 				encode_maps[count] = new TimeEncoder(field.getName(), "yyyy-MM-dd HH:mm:ss");
+			}
+			else {
+				encode_maps[count] = new CategoricalEncoder(field.getName());
+			}
+			field_names[count] = field.getName();
+			count++;
+		}
+		return this;
+	}
+	
+	/**
+	 * Initiates a RecordEncoder with information from the class V
+	 * All double/float/int values are attributed to a real encoder
+	 * all String values associated with categorical encoder
+	 * 
+	 * If time encoder, options are
+	 * 	DAY_OF_WEEK, (by default)
+	    HOUR_OF_DAY,
+	    DAY_OF_MONTH,
+	    MONTH_OF_YEAR,
+	    WEEK_OF_YEAR
+	 * 
+	 * @param val
+	 * @return
+	 */
+	public RecordEncoder<V> initiate(Class<?> val, int bits, boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year) {
+		
+		List<Field> fields = getPrivateFields(val);
+		encode_maps = new Encoder[fields.size()];
+		field_names = new String[fields.size()];
+		
+		int count = 0;
+		for(Field field : fields) {
+			
+			String type = field.getType().toString();
+			if(type.contains("double") || type.contains("float") || type.contains("int")) {							
+				encode_maps[count] = new RealEncoder(field.getName(), bits);				
+			}
+			else if(type.contains("Temporal")) {
+				encode_maps[count] = new TimeEncoder(field.getName(), "yyyy-MM-dd HH:mm:ss");
+				if(hours) {
+					((TimeEncoder) encode_maps[count]).addTimeEncoder(Time_Encoder.HOUR_OF_DAY);
+				}
+				if(day_of_month) {
+					((TimeEncoder) encode_maps[count]).addTimeEncoder(Time_Encoder.DAY_OF_MONTH);
+				}
+				if(month_of_year) {
+					((TimeEncoder) encode_maps[count]).addTimeEncoder(Time_Encoder.MONTH_OF_YEAR);
+				}
+				if(week_of_year) {
+					((TimeEncoder) encode_maps[count]).addTimeEncoder(Time_Encoder.WEEK_OF_YEAR);
+				}
+				
 			}
 			else {
 				encode_maps[count] = new CategoricalEncoder(field.getName());

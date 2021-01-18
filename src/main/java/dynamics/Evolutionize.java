@@ -84,12 +84,16 @@ public class Evolutionize<V> {
 		encoder.initiate(val, bits);
 	}
 	
+	public void initiate(Class<?> val, int bits, boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year) {	
+		encoder.initiate(val, bits, hours, day_of_month, month_of_year, week_of_year);
+	}
+	
 	public void addValue(V val) throws IllegalArgumentException, IllegalAccessException {		
 		encoder.addValue(val);
 	}
 	
 	public void fit() {
-		encoder.fit_dynamic();
+		encoder.fit_uniform();
 	}
 	
 	public void initiateConvolutionEncoder() {
