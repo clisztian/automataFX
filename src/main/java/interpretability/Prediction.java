@@ -1,8 +1,11 @@
 package interpretability;
 
+import output.OutputLabel;
+
 public class Prediction {
 
-
+	
+	
 	private double probability;
 	private int pred_class;
 	private float[] pred_probabilities;
@@ -137,6 +140,8 @@ public class Prediction {
 	public void setPred_probabilities(float[] pred_probabilities) {
 		this.pred_probabilities = pred_probabilities;
 	}
+
+
 
 	
 	

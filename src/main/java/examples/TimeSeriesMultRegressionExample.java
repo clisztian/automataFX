@@ -31,9 +31,9 @@ public class TimeSeriesMultRegressionExample {
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException {
 		
 		int dim_x = 40;
-		int dim_y = 10;
-		int patch_dim_y = 10;
-		int threshold = 100;
+		int dim_y = 2;
+		int patch_dim_y = 2;
+		int threshold = 80;
 		int nClauses = 30;
 		float max_specificity = 2f;
 		int nClasses = 100; //regression
@@ -43,8 +43,8 @@ public class TimeSeriesMultRegressionExample {
 		
 		int total_samples = 1500;
 		int out_sample = 200;
-		ArrayList<AnomalySeriesObservation> in_sample = TimeSeriesMultRegressionExample.sampleData(0, total_samples);
-
+		//ArrayList<AnomalySeriesObservation> in_sample = TimeSeriesMultRegressionExample.sampleData(0, total_samples);
+		ArrayList<AnomalySeriesObservation> in_sample = TimeSeriesMultRegressionExample.sampleStochasticData(0, total_samples);
 		
 		//AutomataLearning<AnomalySeriesObservation> automata = new AutomataLearning<AnomalySeriesObservation>(dim_y, patch_dim_y, dim_x, in_sample.get(0), nClauses, threshold, max_specificity, nClasses);
 		
@@ -157,8 +157,40 @@ public class TimeSeriesMultRegressionExample {
 		}
 		
 		return data;
-		
 	}
+	
+	
+	public static ArrayList<AnomalySeriesObservation> sampleARIMAData(int start, int T) {
+		
+		TimeSeries myseries = sampleMAModel(T);
+		TimeSeries myseries2 = sampleARModel(T);
+		TimeSeries myseries3 = sampleSeasonalARModel(T);
+		
+		ArrayList<AnomalySeriesObservation> data = new ArrayList<AnomalySeriesObservation>();		
+		DateTime dt = new DateTime(2012, 12, 23, 1, 0);
+		
+		
+		for(int i = start; i < T + start; i++) {
+			
+			double val1 = myseries.at(i);
+			double val2 = myseries2.at(i);
+			double val3 = myseries3.at(i);
+			data.add(new AnomalySeriesObservation(new Temporal(dt.toString(date_formatter)), (float)val2));
+//			if(dt.getDayOfMonth() > 15) {
+//				data.add(new AnomalySeriesObservation(new Temporal(dt.toString(date_formatter)), (float)val2));
+//			}
+//			else {
+//				data.add(new AnomalySeriesObservation(new Temporal(dt.toString(date_formatter)), (float)val3));
+//			}			
+			dt = dt.plusHours(1);
+		}
+		
+		return data;
+	}
+	
+	
+	
+	
 	
 	public static double series_2(int t) {
 		return Math.sin(t * 0.02f * 2f * Math.PI) * .25f + Math.sin(t * .09f * 2f * Math.PI)*0.65f;
@@ -213,8 +245,7 @@ public class TimeSeriesMultRegressionExample {
 	public static TimeSeries sampleARModel(int N) {
 		
 		ArimaCoefficients.Builder builder = ArimaCoefficients.builder();
-		ArimaCoefficients coefficients = builder.setMACoeffs(0.1)
-                .setARCoeffs(0.7)
+		ArimaCoefficients coefficients = builder .setARCoeffs(0.7)
                 .build();
 
 		ArimaProcess process = ArimaProcess.builder()

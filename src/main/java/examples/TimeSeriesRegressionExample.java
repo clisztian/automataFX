@@ -211,8 +211,8 @@ public class TimeSeriesRegressionExample {
 	public static TimeSeries sampleARModel(int N) {
 		
 		ArimaCoefficients.Builder builder = ArimaCoefficients.builder();
-		ArimaCoefficients coefficients = builder.setMACoeffs(0.1)
-                .setARCoeffs(0.7)
+		ArimaCoefficients coefficients = builder.setMACoeffs(0.6)
+                .setARCoeffs(0.8)
                 .build();
 
 		ArimaProcess process = ArimaProcess.builder()

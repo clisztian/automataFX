@@ -3,6 +3,10 @@ package dataio;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+
 import com.csvreader.CsvReader;
 
 import records.AnyRecord;
@@ -43,6 +47,11 @@ public class CSVInterface {
 	}
 
 	
+	public CSVInterface() {
+		// TODO Auto-generated constructor stub
+	}
+
+
 	/**
 	 * Creates a record template given a string of headers. The default rules are as follow:
 	 * 
@@ -176,7 +185,12 @@ public class CSVInterface {
 				values[i] = marketDataFeed.get(headers[i]);
 			}
 			else {
-				values[i] = Float.parseFloat(marketDataFeed.get(headers[i]));	
+				String myval = marketDataFeed.get(headers[i]);
+				if(myval == null || myval == "") values[i] = null;
+				else {
+					values[i] = Float.parseFloat(marketDataFeed.get(headers[i]));	
+				}
+				
 			}
 		}
 		anyRecord.setValues(values);
@@ -210,19 +224,59 @@ public class CSVInterface {
 	public static void main(String[] args) throws IOException {
 		
 		
-		CSVInterface csv = new CSVInterface("data/test_data.csv");	
-		AnyRecord anyrecord = csv.createRecord();
+//		CSVInterface csv = new CSVInterface("data/test_data.csv");	
+//		AnyRecord anyrecord = csv.createRecord();
+//		
+//		ArrayList<AnyRecord> records = csv.getAllRecords();
+//		
+//		for(AnyRecord record : records) {
+//			System.out.println(record.toString());
+//		}
+//		
+//		csv.close();
 		
-		ArrayList<AnyRecord> records = csv.getAllRecords();
+		int total_out = 0;
+		int total_non = 0;
+		CSVInterface csv = new CSVInterface();
+		ClassLoader classLoader = csv.getClass().getClassLoader();
+		File file = new File(classLoader.getResource("data/expense_data_records.csv").getFile());
+
+		CsvReader marketDataFeed = new CsvReader(file.getAbsolutePath());		
+		marketDataFeed.readHeaders();
 		
-		for(AnyRecord record : records) {
-			System.out.println(record.toString());
+
+		while (marketDataFeed.readRecord()) {	
+			
+			String startdate = marketDataFeed.get("category_startdate"); 
+			String enddate = marketDataFeed.get("category_enddate"); 
+			
+			if(startdate != null && enddate != null) {
+				
+				String rank = marketDataFeed.get("rank"); 
+				String group = marketDataFeed.get("category_disclosure-group"); 
+				String title = marketDataFeed.get("category_title_en");
+				String air = NumberUtils.isCreatable(marketDataFeed.get("airfare")) ? marketDataFeed.get("airfare") : "0"; 
+				String trans = NumberUtils.isCreatable(marketDataFeed.get("other_transport")) ? marketDataFeed.get("other_transport") : "0";  
+				String lodging = NumberUtils.isCreatable(marketDataFeed.get("lodging")) ?  marketDataFeed.get("lodging") : "0";
+				String meals = NumberUtils.isCreatable(marketDataFeed.get("meals")) ? marketDataFeed.get("meals") : "0";
+				String other = NumberUtils.isCreatable(marketDataFeed.get("other_expenses")) ? marketDataFeed.get("other_expenses") : "0";
+				String total = NumberUtils.isCreatable(marketDataFeed.get("total")) ? marketDataFeed.get("total"): "0";
+				String ndays = NumberUtils.isCreatable(marketDataFeed.get("num_days")) ? marketDataFeed.get("num_days") : "0";
+				
+				int label = NumberUtils.isCreatable(rank) ? 1 : 0;
+				if(label == 1 && total_out < 500) {
+					System.out.println(title  + ";" + air + ";" + trans + ";" + lodging + ";" + meals + ";" + other + ";" + total + ";" + ndays + ";" + label);
+					total_out++;
+				}
+				else if(label == 0 && total_non < 500) {
+					System.out.println(title  + ";" + air + ";" + trans + ";" + lodging + ";" + meals + ";" + other + ";" + total + ";" + ndays + ";" + label);
+					total_non++;
+				}
+				
+			}
 		}
 		
-		csv.close();
-		
-		
-		
+		marketDataFeed.close();
 	}
 	
 	

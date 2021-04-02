@@ -312,7 +312,6 @@ public class AutomataLearning<V> {
 	
 		Prediction prediction = new Prediction(myclass, probability);
 		
-		System.out.println(allbits.length + " " + pred.length + " " + risks.length);
 		localRiskAndFeatureImportance(prediction, allbits, risks);
 		
 		return prediction;
@@ -542,17 +541,7 @@ public class AutomataLearning<V> {
 	 * @return
 	 */
 	public GlobalRealFeatures decodeRealFeatures(String name, RealEncoder encoder, int[] pos_cont, int[] neg_cont) {
-		
-		for(int i = 0; i < pos_cont.length; i++) {
-			System.out.print(pos_cont[i] + " ");
-		}
-		System.out.println("");
-		for(int i = 0; i < pos_cont.length; i++) {
-			System.out.print(neg_cont[i] + " ");
-		}
-
-		
-		
+				
 		GlobalRealFeatures global = new GlobalRealFeatures(name);
 
 		float pos_mean = mean0(pos_cont);
@@ -584,7 +573,7 @@ public class AutomataLearning<V> {
 				first_zero = k;
 			}
 		}
-		System.out.print(" [" + last_index  + ", " + first_index + "], [ " + first_zero + ", " + last_zero + "]\n");			
+		//System.out.print(" [" + last_index  + ", " + first_index + "], [ " + first_zero + ", " + last_zero + "]\n");			
         global.setValues(name, pos_mean, neg_mean, pos_cont, neg_cont, new int[] {last_index, first_index}, new int[] {first_zero, last_zero});
         
         if(encoder != null) {

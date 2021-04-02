@@ -43,6 +43,7 @@ public class ConvolutionalAutomatonMachine {
 	private int[] clause_weights;
 	private int[] output_one_patches;
 	private int[] clause_patch;
+	private float[] clause_patch_coverage;
 	
 	PcgRR rng; 
 
@@ -100,7 +101,7 @@ public class ConvolutionalAutomatonMachine {
 		clause_weights = new int[nClauses];
 		output_one_patches = new int[number_of_patches];
 		clause_patch = new int[nClauses];
-
+		clause_patch_coverage = new float[nClauses];
 		
 		for (int j = 0; j < nClauses; ++j) {
 			for (int k = 0; k < la_chunks; ++k) {
@@ -245,6 +246,7 @@ public class ConvolutionalAutomatonMachine {
     	for (int j = 0; j < nClauses; j++) {
     		
     		output_one_patches_count = 0;
+    		clause_patch_coverage[j] = 0f;
     		
     		for(int patch = 0; patch < number_of_patches; ++patch) {
 	    		
@@ -283,8 +285,8 @@ public class ConvolutionalAutomatonMachine {
      			clause_output[clause_chunk] |= (1 << clause_chunk_pos);
 
      			int patch_id = (int) (Integer.toUnsignedLong(~rng.nextInt()) % output_one_patches_count);
-    	 		clause_patch[j] = output_one_patches[patch_id];
-    	 		//System.out.println(j + " " + output_one_patches_count + " " + patch_id + " " + output_one_patches[patch_id]);
+    	 		clause_patch[j] = output_one_patches[patch_id];  	 		
+    	 		clause_patch_coverage[j] = 1f*output_one_patches_count/number_of_patches;
      		}
     		
      	}
@@ -955,6 +957,9 @@ public class ConvolutionalAutomatonMachine {
 	}
 
 
+	public float[] getClause_patch_coverage() {
+		return clause_patch_coverage;
+	}
 	
 	
 }

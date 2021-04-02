@@ -52,10 +52,10 @@ public class EEGInterfaceExample {
 		int dim_y = 7200;
 		int patch_dim_y = 20;
 		int n_samples = 200;
-		int threshold = 160;
-		int nClauses = 64;
+		int threshold = 120;
+		int nClauses = 32;
 	
-		float max_specificity = 2f;
+		float max_specificity = 1.5f;
 		int nClasses = 2;
 		
 			
