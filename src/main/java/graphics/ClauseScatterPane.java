@@ -5,11 +5,15 @@ import java.util.ArrayList;
 import javafx.animation.Animation;
 import javafx.animation.RotateTransition;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.Scene;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -31,6 +35,7 @@ public class ClauseScatterPane {
     private double mouseOldX, mouseOldY;
     
     private Color[] colors;
+    private Color[] pre_colors;
     
     private double[][] clauses;
 	private double[] mins;
@@ -48,6 +53,8 @@ public class ClauseScatterPane {
 		clause_pane.getChildren().add(grid);
 		makeZoomable(clause_pane);
 		
+		clause_pane.setBackground(new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY)));
+		clause_pane.setPrefSize(1200, 1400);
 		clause_scene = new Scene(clause_pane);
 		clause_scene.getStylesheets().add("css/WhiteOnBlack.css");
         clause_scene.setCamera(new PerspectiveCamera());
@@ -75,10 +82,77 @@ public class ClauseScatterPane {
 	    rt.setByAngle(360);
 	    rt.setCycleCount(Animation.INDEFINITE);
 	    rt.setAutoReverse(true);	 
-	    //rt.play();
+	    rt.play();
 		
+	    pre_colors = new Color[] {Color.CORNFLOWERBLUE, Color.AQUA, Color.DARKMAGENTA, Color.VIOLET, Color.TOMATO, Color.DARKSALMON, Color.SPRINGGREEN, Color.STEELBLUE, Color.TAN, Color.SADDLEBROWN};
+	    
 	}
     
+    
+    public void computeScatterPlot(float[][] vals, int[] labels) {
+    	
+    	grid.getChildren().clear();
+    	
+    	mins = new double[3];		
+		maxs = new double[3];
+		
+		for(int i = 0; i < 3; i++) {
+			mins[i] = Double.MAX_VALUE;
+			maxs[i] = -Double.MAX_VALUE;
+		}
+		
+		
+		for(int i = 0; i < vals.length; i++) {
+			
+			for(int j = 0; j < vals[0].length; j++) {
+												
+				mins[0] = Math.min(mins[0], vals[i][0]);
+				mins[1] = Math.min(mins[1], vals[i][1]);
+				mins[2] = Math.min(mins[2], vals[i][2]);
+				
+				maxs[0] = Math.max(maxs[0], vals[i][0]);
+				maxs[1] = Math.max(maxs[1], vals[i][1]);
+				maxs[2] = Math.max(maxs[2], vals[i][2]);	
+			}	
+		}
+		
+		double yjump = maxs[1] - mins[1];
+		double zjump = maxs[2] - mins[2];
+		double xjump = maxs[0] - mins[0];
+		
+		for (int i = 0; i < vals.length; i++) {
+        	          
+       	
+            Sphere sphere = new Sphere(5f); 
+
+            // color
+            PhongMaterial mat = new PhongMaterial();
+            mat.setDiffuseColor(pre_colors[labels[i]]);
+            mat.setSpecularColor(Color.WHITE);
+            sphere.setMaterial(mat);
+            
+            
+            PointLight pointlight = new PointLight(pre_colors[labels[i]]); 
+    
+            double yloc = 400.0*(vals[i][1] - mins[1])/yjump - 200;
+            double xloc = 400.0*(vals[i][0] - mins[0])/xjump - 200;
+            double zloc = 400.0*(vals[i][2] - mins[2])/zjump - 200;
+
+            sphere.setLayoutY(yloc);
+            sphere.setTranslateX(xloc);
+            sphere.setTranslateZ(zloc);
+                   
+            pointlight.setTranslateZ(zloc); 
+            pointlight.setTranslateX(xloc); 
+            pointlight.setLayoutY(yloc); 
+            
+            
+            grid.getChildren().addAll(sphere,pointlight);
+        }
+    	
+    	
+    	
+    }
     
     
 	public void computeClauseScatterPlot(MultivariateConvolutionalAutomatonMachine machine) {
