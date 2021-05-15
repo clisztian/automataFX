@@ -1,6 +1,5 @@
 package tsetlin;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -56,6 +55,7 @@ public class MultiAutomataLearning<V> {
 	private int n_real_features;
 	private int n_categorical_features;
 	private int n_time_features;
+	private float drop_clause_p;
 	
 	private GlobalRealFeatures[][] real_features;
 	private GlobalRealFeatures lag_features;
@@ -75,12 +75,12 @@ public class MultiAutomataLearning<V> {
 	 * @param dim_x
 	 * @param val
 	 */
-	public MultiAutomataLearning(int dim_y, int patch_dim_y, int dim_x, V val, int nClauses, int threshold,  float max_specificity, int nClasses) {
+	public MultiAutomataLearning(int dim_y, int patch_dim_y, int dim_x, V val, int nClauses, int threshold,  float max_specificity, int nClasses, float drop_clause_p) {
 		
 		this.dim_x = dim_x;
 		this.dim_y = dim_y;
 		this.patch_dim_y = patch_dim_y;
-		
+		this.drop_clause_p = drop_clause_p;
 		
 		evolution = new Evolutionize(patch_dim_y, dim_y);		
 		
@@ -90,7 +90,7 @@ public class MultiAutomataLearning<V> {
 		else evolution.initiate(val.getClass(), dim_x);
 		
 		evolution.initiateConvolutionEncoder();
-		automaton = new MultivariateConvolutionalAutomatonMachine(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true); 	
+		automaton = new MultivariateConvolutionalAutomatonMachine(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, drop_clause_p); 	
 		
 		n_global_features = evolution.getEncoder().getEncode_maps().length;
 		
@@ -127,12 +127,12 @@ public class MultiAutomataLearning<V> {
 	 * @param week_of_year
 	 */
 	public MultiAutomataLearning(int dim_y, int patch_dim_y, int dim_x, V val, int nClauses, int threshold,  float max_specificity, int nClasses, 
-			boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year) {
+			boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year, float drop_clause_p) {
 		
 		this.dim_x = dim_x;
 		this.dim_y = dim_y;
 		this.patch_dim_y = patch_dim_y;
-		
+		this.drop_clause_p = drop_clause_p;
 		
 		evolution = new Evolutionize(patch_dim_y, dim_y);		
 		
@@ -142,7 +142,7 @@ public class MultiAutomataLearning<V> {
 		else evolution.initiate(val.getClass(), dim_x, hours, day_of_month, month_of_year, week_of_year);
 		
 		evolution.initiateConvolutionEncoder();
-		automaton = new MultivariateConvolutionalAutomatonMachine(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true); 	
+		automaton = new MultivariateConvolutionalAutomatonMachine(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, drop_clause_p); 	
 		
 		n_global_features = evolution.getEncoder().getEncode_maps().length;
 		
@@ -159,7 +159,12 @@ public class MultiAutomataLearning<V> {
 		rng = new Random();
 	}
 	
-	
+	/**
+	 * Applies a new drop_claus configuration during training for all classes
+	 */
+	public void drop_clauses() {
+		automaton.drop_clause();
+	}
 	
 	/**
 	 * Add a list of values in order to learn the feature's dimensions

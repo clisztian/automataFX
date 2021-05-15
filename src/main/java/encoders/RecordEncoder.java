@@ -152,8 +152,11 @@ public class RecordEncoder<V>  {
 		return this;
 	}
 	
+
+	
+	
 	/**
-	 * Intantiates a record encoder with a record containing field_names and a bit dimension
+	 * Instantiates a record encoder with a record containing field_names and a bit dimension
 	 * @param record
 	 * @param datetime_format
 	 * @param dim
@@ -598,6 +601,9 @@ public class RecordEncoder<V>  {
 		return encoded;	
 
 	}
+
+
+
 	
 	
 	

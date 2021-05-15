@@ -26,9 +26,11 @@ public class MultivariateConvolutionalAutomatonMachine {
 	private int T;
 	private boolean append_negated;
 	private boolean indexed;
+	private float drop_clause_p;
+	
 	private ConvolutionEncoder encoder;
 	
-	private ConvolutionalAutomatonMachine[] tm;
+	private AutomataNode[] tm;
 	Random rng;
 	private double[] count_pos_features;
 	private double[] count_neg_features;
@@ -43,20 +45,21 @@ public class MultivariateConvolutionalAutomatonMachine {
 	private int[] global_patch;
 	private int[] global_y_index;
 
-	public MultivariateConvolutionalAutomatonMachine(ConvolutionEncoder encoder, int threshold, int nClasses, int nClauses, float max_specificity, boolean boost) {
+	public MultivariateConvolutionalAutomatonMachine(ConvolutionEncoder encoder, int threshold, int nClasses, int nClauses, float max_specificity, boolean boost, float drop_clause_p) {
 		
 		this.encoder = encoder;
 		this.nClauses = nClauses;
 		this.nClasses = nClasses;
 
+		this.drop_clause_p = drop_clause_p;
 		this.indexed = true;
 		this.append_negated = true;
 		this.T = threshold;
 
-		tm = new ConvolutionalAutomatonMachine[nClasses];
+		tm = new AutomataNode[nClasses];
 				
 		for(int i = 0; i < nClasses; i++) {
-			tm[i] = new ConvolutionalAutomatonMachine(encoder, threshold, nClauses, max_specificity, boost).initialize();
+			tm[i] = new AutomataNode(encoder, threshold, nClauses, max_specificity, boost, drop_clause_p).initialize();
 		}
 		rng = new Random(21);
 		
@@ -89,6 +92,16 @@ public class MultivariateConvolutionalAutomatonMachine {
 	}
 
 
+	public void drop_clause() {
+		
+		if(drop_clause_p > 0) {
+			for(int i = 0; i < nClasses; i++) {
+				tm[i].updateDropClause();
+			}
+		}	
+	}
+	
+	
 	private int update_regression(int Xi[], int target) {	
 		return tm[0].update_regression(Xi, target);	
 	}
@@ -303,7 +316,7 @@ public class MultivariateConvolutionalAutomatonMachine {
 	}
 	
 	
-	public ConvolutionalAutomatonMachine getMachine(int myClass) {
+	public AutomataNode getMachine(int myClass) {
 		return tm[myClass];
 	}
 

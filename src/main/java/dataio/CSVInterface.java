@@ -1,6 +1,7 @@
 package dataio;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -26,6 +27,7 @@ public class CSVInterface {
 	private CsvReader marketDataFeed;
 	private AnyRecord anyRecord;
 	private String[] headers;
+	private boolean indexed_headers = false;
 	
 	/**
 	 * Instantiates a CSV reader and for a given file name and produces the 
@@ -47,11 +49,41 @@ public class CSVInterface {
 	}
 
 	
-	public CSVInterface() {
-		// TODO Auto-generated constructor stub
+	/**
+	 * Instantiates a CSV reader for the file name
+	 * @param file_name
+	 * @param label_col
+	 * @throws IOException 
+	 */
+	public CSVInterface(String file_name, int[] meta_cols, boolean label_col, boolean header_names) throws IOException {
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		File file = new File(classLoader.getResource(file_name).getFile());
+		marketDataFeed = new CsvReader(file.getAbsolutePath());
+		marketDataFeed.readHeaders();
+		
+		if(header_names) {
+			headers = marketDataFeed.getHeaders();
+		}
+		else {
+			int n_cols = marketDataFeed.getColumnCount();
+			
+			indexed_headers  = true;
+			
+			if(!label_col) headers = new String[n_cols - meta_cols.length];
+			else {
+				headers = new String[n_cols - meta_cols.length - 1];
+			}
+		}
+		
 	}
 
 
+	public CSVInterface() {
+		
+	}
+	
+	
 	/**
 	 * Creates a record template given a string of headers. The default rules are as follow:
 	 * 
@@ -198,6 +230,40 @@ public class CSVInterface {
 		
 		return anyRecord;	
 	}
+	
+	private AnyRecord grabOneRecord() throws IOException {
+		
+		if(headers == null) {
+			return null;
+		}
+				
+		AnyRecord anyRecord = new AnyRecord();
+		Object[] values = new Object[headers.length];
+		
+
+		for(int i = 0; i < headers.length; i++) {
+			
+			if(headers[i].contains("category_") || headers[i].contains("cat_")) {
+				values[i] = marketDataFeed.get(headers[i]);
+			}
+			else if(headers[i].contains("time") || headers[i].contains("date")) {
+				values[i] = marketDataFeed.get(headers[i]);
+			}
+			else {
+				String myval = marketDataFeed.get(headers[i]);
+				if(myval == null || myval == "") values[i] = null;
+				else {
+					values[i] = Float.parseFloat(marketDataFeed.get(headers[i]));	
+				}
+				
+			}
+		}
+		anyRecord.setValues(values);
+		
+		
+		return anyRecord;	
+	}
+	
 	
 	
 	public AnyRecord getAnyRecord() {

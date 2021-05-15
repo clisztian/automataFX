@@ -28,7 +28,7 @@ public class MNISTExample {
 		float max_specificity = 10f;
 		int nClasses = 10;
 
-		MultivariateConvolutionalAutomatonMachine conv = new MultivariateConvolutionalAutomatonMachine(myEncoder, threshold, nClasses, nClauses, max_specificity, true); 
+		MultivariateConvolutionalAutomatonMachine conv = new MultivariateConvolutionalAutomatonMachine(myEncoder, threshold, nClasses, nClauses, max_specificity, true, 0f); 
 		
 		long start = System.currentTimeMillis();
 		for(int i = 0; i < 1000; i++) {		

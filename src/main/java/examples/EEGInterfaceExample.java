@@ -60,7 +60,7 @@ public class EEGInterfaceExample {
 		
 			
 		
-		AutomataLearning<AnyRecord> automata = new AutomataLearning<AnyRecord>(dim_y, patch_dim_y, dim_x, any, nClauses, threshold, max_specificity, nClasses);
+		AutomataLearning<AnyRecord> automata = new AutomataLearning<AnyRecord>(dim_y, patch_dim_y, dim_x, any, nClauses, threshold, max_specificity, nClasses, 0f);
 		automata.add_fit(in_sample);
 		
 		

@@ -11,7 +11,7 @@ public class ExpenseRecordsExample extends Application {
 	public void start(Stage arg0) throws Exception {
 		
 
-		CSVInterface csv = new CSVInterface("data/expense_data_records.csv");	
+		CSVInterface csv = new CSVInterface("data/clean1.data");	
 		AnyRecord anyrecord = csv.createRecord();
 		
 		

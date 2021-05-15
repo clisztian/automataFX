@@ -47,7 +47,7 @@ public class TimeSeriesRegressionExample {
 		//AutomataLearning<AnomalySeriesObservation> automata = new AutomataLearning<AnomalySeriesObservation>(dim_y, patch_dim_y, dim_x, in_sample.get(0), nClauses, threshold, max_specificity, nClasses);
 		
 		AutomataLearning<AnomalySeriesObservation> automata = new AutomataLearning<AnomalySeriesObservation>(dim_y, patch_dim_y, dim_x, 
-				in_sample.get(0), nClauses, threshold, max_specificity, nClasses, false, false, false, false);
+				in_sample.get(0), nClauses, threshold, max_specificity, nClasses, false, false, false, false, 0f);
 		
 		automata.add_fit(in_sample);
 		automata.buildRealRegressionDecoders();

@@ -1,7 +1,7 @@
 .table-view {
     -fx-base: #1d1d1d;
     -fx-control-inner-background: #1d1d1d;
-    -fx-background-color: rgb(15,15,15,.8);
+    -fx-background-color: linear-gradient(to top, rgb(2, 38, 47), rgb(40, 0, 40));
     -fx-table-cell-border-color: transparent;
     -fx-table-header-border-color: transparent;
     -fx-padding: 5;
@@ -37,9 +37,6 @@
     -fx-opacity: 1;
 }
 
-.table-view:focused .table-row-cell:filled:focused:selected {
-    -fx-background-color: -fx-focus-color;
-}
 
 .tab-header-area {
     -fx-text-box-border: -fx-base;
@@ -64,9 +61,6 @@
 
 .table-row-cell:selected {
    -fx-background-color: darkmagenta; 
-}
-.table-row-cell:selected .text {
-       -fx-fill: white ;
 }
 
 

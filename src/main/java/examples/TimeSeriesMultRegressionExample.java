@@ -21,6 +21,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import plots.KPIPlot;
 import records.AnomalySeriesObservation;
+import tsetlin.AutomataLearning;
 import tsetlin.MultiAutomataLearning;
 
 public class TimeSeriesMultRegressionExample {
@@ -46,10 +47,11 @@ public class TimeSeriesMultRegressionExample {
 		//ArrayList<AnomalySeriesObservation> in_sample = TimeSeriesMultRegressionExample.sampleData(0, total_samples);
 		ArrayList<AnomalySeriesObservation> in_sample = TimeSeriesMultRegressionExample.sampleStochasticData(0, total_samples);
 		
-		//AutomataLearning<AnomalySeriesObservation> automata = new AutomataLearning<AnomalySeriesObservation>(dim_y, patch_dim_y, dim_x, in_sample.get(0), nClauses, threshold, max_specificity, nClasses);
+//		AutomataLearning<AnomalySeriesObservation> automata = new AutomataLearning<AnomalySeriesObservation>(dim_y, patch_dim_y, dim_x, in_sample.get(0), nClauses, threshold, max_specificity, nClasses,
+//			 false, false, false, false);
 		
 		MultiAutomataLearning<AnomalySeriesObservation> automata = new MultiAutomataLearning<AnomalySeriesObservation>(dim_y, patch_dim_y, dim_x, 
-				in_sample.get(0), nClauses, threshold, max_specificity, nClasses, false, false, false, false);
+				in_sample.get(0), nClauses, threshold, max_specificity, nClasses, false, false, false, false, 0f);
 		
 		automata.add_fit(in_sample);
 		automata.buildRealRegressionDecoders();

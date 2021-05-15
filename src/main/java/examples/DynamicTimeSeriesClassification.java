@@ -195,7 +195,7 @@ public class DynamicTimeSeriesClassification {
 		int nClasses = 3;
 		
 		
-		MultivariateConvolutionalAutomatonMachine conv = new MultivariateConvolutionalAutomatonMachine(evolve.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true); 
+		MultivariateConvolutionalAutomatonMachine conv = new MultivariateConvolutionalAutomatonMachine(evolve.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, 0f); 
 		
 		
 		int n_train = (int)(input_data.size()*.60);

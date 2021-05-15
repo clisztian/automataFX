@@ -30,7 +30,7 @@ public class TestExpenseRecords {
 
 	public static void main(String[] args) throws IOException {
 		
-		CSVInterface csv = new CSVInterface("data/expense_data_records.csv");	
+		CSVInterface csv = new CSVInterface("data/clean1.data");	
 		AnyRecord anyrecord = csv.createRecord();
 		
 		String[] fields = anyrecord.getField_names();

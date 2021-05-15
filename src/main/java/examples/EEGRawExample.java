@@ -77,7 +77,7 @@ public class EEGRawExample {
 		float max_specificity = 2f;
 		int nClasses = 2;
 
-		MultivariateConvolutionalAutomatonMachine conv = new MultivariateConvolutionalAutomatonMachine(evolve.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true); 
+		MultivariateConvolutionalAutomatonMachine conv = new MultivariateConvolutionalAutomatonMachine(evolve.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, 0f); 
 		ArrayList<Integer> training_sample_list = new ArrayList<Integer>();
 		for(int i = 0; i < n_samples; i++) training_sample_list.add(i);
 		Collections.shuffle(training_sample_list);

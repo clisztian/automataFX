@@ -299,7 +299,7 @@ public class EEGMonitorView extends Application {
 
 	public void buildAutomataModel() throws IllegalArgumentException, IllegalAccessException {
 		
-		automata = new AutomataLearning<AnyRecord>(dim_y, patch_dim_y, dim_x, any, nClauses, threshold, max_specificity, nClasses);
+		automata = new AutomataLearning<AnyRecord>(dim_y, patch_dim_y, dim_x, any, nClauses, threshold, max_specificity, nClasses, 0);
 		automata.add_fit(in_sample);
 		
 	}

@@ -11,6 +11,7 @@ public class AnyRecord {
 	private Object[] values;
 	private String[] field_names = null;
 	
+	private String[] meta_names = null;	
 	private Integer label = null;
 	
 	public AnyRecord() {
@@ -68,5 +69,13 @@ public class AnyRecord {
 
 	public void setLabel(Integer label) {
 		this.label = label;
+	}
+	
+	public String[] getMeta_names() {
+		return meta_names;
+	}
+
+	public void setMeta_names(String[] meta_names) {
+		this.meta_names = meta_names;
 	}
 }
