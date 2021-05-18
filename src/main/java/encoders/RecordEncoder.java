@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -14,10 +15,13 @@ import org.joda.time.format.DateTimeFormatter;
 
 import encoders.TimeEncoder.Time_Encoder;
 import records.AnyRecord;
+import records.RecordColumn.Type;
 import records.TimeIndicator;
 
 /**
  * Encodes a record into several smaller encoders
+ * 
+ * 
  * @author lisztian
  *
  * @param <V>
@@ -29,6 +33,16 @@ public class RecordEncoder<V>  {
 	private int feature_dimension;
 	private Encoder[] encode_maps;
 	private String[] field_names;
+
+	/**
+	 * Encoder map for AnyRecord from RecordTable
+	 */
+	private Map<String, Encoder> encoder_map;
+	private AnyRecord anyRecord;
+
+
+
+	private Type[] field_types;
 	
 	public RecordEncoder() {
 		setValues(new ArrayList<V>());
@@ -189,6 +203,56 @@ public class RecordEncoder<V>  {
 		return this;
 	}
 	
+	
+
+
+	
+	
+	public RecordEncoder<V> initiate(AnyRecord record, String datetime_format, int dim, boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year) {
+		
+		if(record.getType() != null) {
+		
+			encoder_map = new HashMap<String, Encoder>();
+			
+			field_types = record.getType();
+			field_names = record.getField_names();
+						
+			for(int i = 0; i < record.getValues().length; i++) {
+				
+				if(field_types[i] == Type.TIME) {
+
+					TimeEncoder t_encoder = new TimeEncoder(field_names[i], datetime_format);
+					
+					if(hours) {
+						t_encoder.addTimeEncoder(Time_Encoder.HOUR_OF_DAY);
+					}
+					if(day_of_month) {
+						t_encoder.addTimeEncoder(Time_Encoder.DAY_OF_MONTH);
+					}
+					if(month_of_year) {
+						t_encoder.addTimeEncoder(Time_Encoder.MONTH_OF_YEAR);
+					}
+					if(week_of_year) {
+						t_encoder.addTimeEncoder(Time_Encoder.WEEK_OF_YEAR);
+					}
+					encoder_map.put(field_names[i], t_encoder);
+				}
+				else if(field_types[i] == Type.REAL) {
+					encoder_map.put(field_names[i], new RealEncoder(field_names[i], dim));
+				}
+				else if(field_types[i] == Type.CATEGORY) {
+					encoder_map.put(field_names[i],new CategoricalEncoder(field_names[i]));
+				}				
+			}
+			
+		}
+		return this;
+	}
+	
+	
+	
+	//boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year)
+	
 	/**
 	 * Instantiate a record encoder with anyRecord. Must contain field names
 	 * @param record
@@ -266,7 +330,10 @@ public class RecordEncoder<V>  {
 	 */
 	public void addValue(V val) throws IllegalArgumentException, IllegalAccessException {
 		
-		if(val instanceof AnyRecord) { 
+		if(val instanceof AnyRecord && encoder_map != null) {
+			addRecordMapValue((AnyRecord)val);
+		}		
+		else if(val instanceof AnyRecord) { 
 			addRecordValue((AnyRecord)val);
 		}
 		else {			
@@ -298,6 +365,36 @@ public class RecordEncoder<V>  {
 			}							
 		}		
 	}
+	
+	/**
+	 * Add a record value from an AnyRecord map
+	 * @param any
+	 */
+	private void addRecordMapValue(AnyRecord any) {
+		
+		for(int i = 0; i < any.getField_names().length; i++) {
+			
+			Encoder encode = encoder_map.get(any.getField_names()[i]);
+			
+			if(encode != null) {
+				
+				if(any.getType()[i] == Type.TIME && encode instanceof TimeEncoder) {
+					((TimeEncoder)encode).addValue(new Temporal((String)any.getValues()[i]));
+				}
+				else if(any.getType()[i] == Type.REAL && encode instanceof Number) {
+					Float value = (Float)any.getValues()[i];
+					((RealEncoder)encode).addValue(value);
+				}
+				else if(any.getType()[i] == Type.CATEGORY) {
+					((CategoricalEncoder)encode).addValue((String)any.getValues()[i]);
+				}
+			}			
+		}
+	}
+		
+
+	
+	
 	
 	private void addClassRecord(V val) throws IllegalArgumentException, IllegalAccessException {
 		
@@ -346,19 +443,39 @@ public class RecordEncoder<V>  {
 	 * Fit all with the uniform rule
 	 */
 	public void fit_uniform() {		
-		for(int i = 0; i < encode_maps.length; i++) {
-			encode_maps[i].fit_uniform();
-		}	
+		
+		if(encoder_map != null) {
+			for(Encoder encode : encoder_map.values()) {
+				encode.fit_uniform();
+			}
+		}
+		else {
+			for(int i = 0; i < encode_maps.length; i++) {
+				encode_maps[i].fit_uniform();
+			}	
+		}
 	}
 	
 	/**
 	 * Fit all with the dynamic rule
 	 */
 	public void fit_dynamic() {
-		for(int i = 0; i < encode_maps.length; i++) {
-			encode_maps[i].fit_dynamic();
+		
+		if(encoder_map != null) {
+			for(Encoder encode : encoder_map.values()) {
+				encode.fit_dynamic();
+			}
+		}
+		else {
+			for(int i = 0; i < encode_maps.length; i++) {
+				encode_maps[i].fit_dynamic();
+			}
 		}
 	}
+	
+	
+	
+	
 	
 	/**
 	 * Transforms a record into an encoded bit representation
@@ -368,7 +485,11 @@ public class RecordEncoder<V>  {
 	 * @throws IllegalAccessException
 	 */
 	public int[] transform(V val) throws IllegalArgumentException, IllegalAccessException {
-					
+			
+		if(encoder_map != null) {
+			return transform_any_map_record((AnyRecord)val);
+		}
+		
 		if(val instanceof AnyRecord) { 		
 			return transform_any_record((AnyRecord)val);
 		}
@@ -376,11 +497,41 @@ public class RecordEncoder<V>  {
 		return transform_record(val);
 	}
 	
+	
+	/**
+	 * Decodes any bit array back into their respective values
+	 * @param en
+	 * @return
+	 */
 	public ArrayList<RecordDecodeResult> decode(int[] en) {
 		
 		ArrayList<RecordDecodeResult> decode_list = new ArrayList<RecordDecodeResult>();
-		
 		int start = 0;
+		
+		if(encoder_map != null && anyRecord != null) {
+			
+			for(int i = 0; i < anyRecord.getField_names().length; i++) {
+				
+				Encoder encode = encoder_map.get(anyRecord.getField_names()[i]);
+				
+				if(encode != null) {
+					
+					int bit_dim = encode.getBitDimension();
+					int[] subarray = ArrayUtils.subarray(en, start, start+bit_dim);
+					start += bit_dim;
+					
+					RecordDecodeResult res = new RecordDecodeResult();
+					res.setEncoded(subarray);
+					res.setValue(encode.decoder(subarray));
+					res.setField_name(anyRecord.getField_names()[i]);
+					
+					decode_list.add(res);
+				}			
+			}
+						
+			return decode_list;	
+		}
+		
 		for(int i = 0; i < encode_maps.length; i++) {
 			
 			int bit_dim = encode_maps[i].getBitDimension();
@@ -398,6 +549,7 @@ public class RecordEncoder<V>  {
 	}
 	
 	
+	
 	/**
 	 * Get number of total bits represented in record encoding 
 	 * @return
@@ -405,9 +557,18 @@ public class RecordEncoder<V>  {
 	public int getBitDimension() {
 		
 		int dim = 0;
-		for(int i = 0; i < encode_maps.length; i++) {
-			dim += encode_maps[i].getBitDimension();
+		
+		if(encoder_map != null) {
+			for(Encoder encode : encoder_map.values()) {
+				dim += encode.getBitDimension();
+			}
 		}
+		else {
+			for(int i = 0; i < encode_maps.length; i++) {
+				dim += encode_maps[i].getBitDimension();
+			}
+		}
+		
 		return dim;	
 	}
 	
@@ -545,6 +706,46 @@ public class RecordEncoder<V>  {
 		return encoded;		
 	}
 	
+	
+
+	/**
+	 * Transform any record using the encoder map
+	 * @param any
+	 * @return
+	 */
+	private int[] transform_any_map_record(AnyRecord any) {
+		
+		int[] encoded = null;
+		
+		for(int i = 0; i < any.getField_names().length; i++) {
+			
+			Encoder encode = encoder_map.get(any.getField_names()[i]);
+			
+			if(encode != null) {
+				
+				if(any.getType()[i] == Type.TIME && encode instanceof TimeEncoder) {
+					
+					int[] bits = ((TimeEncoder)encode).transform(new Temporal((String)any.getValues()[i]));
+					encoded = ArrayUtils.addAll(encoded, bits);	
+				}
+				else if(any.getType()[i] == Type.REAL && encode instanceof Number) {
+					
+					Float value = (Float)any.getValues()[i];
+					int[] bits = ((RealEncoder)encode).transform(value);
+					encoded = ArrayUtils.addAll(encoded, bits);
+				}
+				else if(any.getType()[i] == Type.CATEGORY) {
+					int[] bits = ((CategoricalEncoder)encode).transform(any.getValues()[i].toString());
+					encoded = ArrayUtils.addAll(encoded, bits);
+				}
+			}			
+		}
+		return encoded;		
+		
+	}
+	
+	
+	
 	/**
 	 * Transforms a predefined record
 	 * @param val
@@ -600,6 +801,10 @@ public class RecordEncoder<V>  {
 		}					
 		return encoded;	
 
+	}
+
+	public Type[] getField_types() {
+		return field_types;
 	}
 
 

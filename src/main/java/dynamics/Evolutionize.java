@@ -54,6 +54,22 @@ public class Evolutionize<V> {
 		encoder = new RecordEncoder<V>();		
 	}
 	
+	
+	/**
+	 * Initiates an evolutionize for AnyRecord, given a datetime_format and parameters used for encoding the datetime
+	 * @param record
+	 * @param datetime_format
+	 * @param bits
+	 * @param hours
+	 * @param day_of_month
+	 * @param month_of_year
+	 * @param week_of_year
+	 */
+	public void initiate(AnyRecord record, String datetime_format, int bits, boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year) {	
+		encoder.initiate(record, datetime_format, bits, hours, day_of_month, month_of_year, week_of_year);
+	}
+	
+	
 	/**
 	 * Initiate the evolutionizer with any record, a datetime format and real encoder dimension
 	 * @param record
@@ -87,6 +103,8 @@ public class Evolutionize<V> {
 	public void initiate(Class<?> val, int bits, boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year) {	
 		encoder.initiate(val, bits, hours, day_of_month, month_of_year, week_of_year);
 	}
+	
+
 	
 	public void addValue(V val) throws IllegalArgumentException, IllegalAccessException {		
 		encoder.addValue(val);

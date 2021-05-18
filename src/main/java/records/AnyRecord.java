@@ -1,5 +1,6 @@
 package records;
 
+import records.RecordColumn.Type;
 
 /**
  * Generic placeholder for a record from csv or database
@@ -10,6 +11,9 @@ public class AnyRecord {
 
 	private Object[] values;
 	private String[] field_names = null;
+
+
+	private Type[] type = null;
 	
 	private String[] meta_names = null;	
 	private Integer label = null;
@@ -21,6 +25,7 @@ public class AnyRecord {
 	public AnyRecord(int label) {
 		this.label = label;
 	}
+	
 	
 	public AnyRecord(String[] names) {
 		setField_names(names);
@@ -56,13 +61,21 @@ public class AnyRecord {
 		sb.append("Value: ");
 		
 		for(int i = 0; i < values.length; i++) {
-			sb.append(values[i].toString() + ", ");
+			sb.append(values[i].toString() + "(" + type[i] + "), ");
 		}
 		
 		return sb.toString();
 		
 	}
 
+	public Type[] getType() {
+		return type;
+	}
+
+	public void setType(Type[] type) {
+		this.type = type.clone();
+	}
+	
 	public Integer getLabel() {
 		return label;
 	}

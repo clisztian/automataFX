@@ -117,12 +117,8 @@ public class CSVTableView extends TableView<Map> {
 			".menu-item:focused .label {\n" + 
 			"  -fx-text-fill: white;\n" + 
 			"}";
-	private ContextMenu tableMenu;
-	private MenuItem change_to_info;
-	private MenuItem change_to_real;
-	private MenuItem change_to_time;
-	private MenuItem change_to_cat;
-	
+
+
 	/**
 	 * If .csv file already has a usable descriptive header, simply 
 	 * create anyRecord with from a csv instance and build table
@@ -132,51 +128,111 @@ public class CSVTableView extends TableView<Map> {
 	public CSVTableView(String file_name) throws IOException {
 		
 		
+
+		any_columns = new ArrayList<RecordColumn>();
+		
+		this.with_header = false;
 		ClassLoader classLoader = getClass().getClassLoader();
 		File file = new File(classLoader.getResource(file_name).getFile());
 
 		marketDataFeed = new CsvReader(file.getAbsolutePath());		
 		marketDataFeed.readHeaders();
-		raw_headers = marketDataFeed.getHeaders();
+		
+		//find out how many values total
+	
+		field_names = marketDataFeed.getHeaders();
+		total_columns = field_names.length;
+		raw_headers = field_names;
+		
+//		for(int i = 0; i < total_columns; i++) {
+//			System.out.println(field_names[i]);
+//		}
+		
 
-		anyRecord = createRecord(raw_headers);
+		if(marketDataFeed.readRecord()) {
+			String[] raw_vals = marketDataFeed.getValues();
+		
+		
+//			for(int i = 0; i < raw_vals.length; i++) {
+//				System.out.println(raw_vals[i]);
+//			}
 			
-		any_columns = new ArrayList<RecordColumn>();
-		field_names = anyRecord.getField_names();
-
-		with_header = true;
-		
-		/**
-		 * Setup table
-		 */
-		for(int i = 0; i < field_names.length; i++) {	
-
-			RecordColumn column = new RecordColumn(field_names[i]);		
-			column.setCellValueFactory(new MapValueFactory<>(field_names[i]));			
-			any_columns.add(column);
-		}
-		
-		
-		getColumns().addAll(any_columns);
-		setEditable(false);
-		
-		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		
-		getStylesheets().add(getClass().getClassLoader().getResource("css/TransactionChart.css").toExternalForm());
-		setPlaceholder(new Text("Loading expenses..."));
-		
-	    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
-	    setOnKeyPressed(event -> {	
-	            if (keyCodeCopy.match(event)) {	
-	                copySelectionToClipboard();	
-	            }	
-	    });
-		
-	    /**
-	     * Now fill table with rest of records
-	     */
-	    addRecords(getAllRecords());
+					
+			boolean[] categorical = new boolean[total_columns];
+			for(int i = 0; i < total_columns; i++) {
+				
+				if(NumberUtils.isCreatable(raw_vals[i].trim())) {
+					categorical[i] = false;
+				}
+				else {
+					categorical[i] = true;
+				}
+			}
+	
+			/**
+			 * Now create a default record with the raw headers
+			 */
+			anyRecord = createRecord(field_names, categorical);
+	
+			
+			/**
+			 * Setup the table
+			 */		
+			for(int i = 0; i < raw_vals.length; i++) {	
+	
+				RecordColumn column = new RecordColumn(field_names[i], categorical[i]);		
+				column.setCellValueFactory(new MapValueFactory<>(field_names[i]));			
+				any_columns.add(column);
+			}
+			
+				
+			getColumns().addAll(any_columns);
+			setEditable(false);
+			
+			getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+			//getStylesheets().add("css/TransactionChart.css");
+			getStylesheets().add(getClass().getClassLoader().getResource("css/TransactionChart.css").toExternalForm());
+			setPlaceholder(new Text("Loading expenses..."));
+			
+		    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
+		    setOnKeyPressed(event -> {	
+		            if (keyCodeCopy.match(event)) {	
+		                copySelectionToClipboard();	
+		            }	
+		    });
+		    autoResizeColumns();
 	    
+		    Callback<RecordColumn, TableCell<Map, Object>> call = new Callback<RecordColumn, TableCell<Map, Object>>() {
+		        public TableCell<Map, Object> call(RecordColumn param) {
+		            return new TableCell<Map, Object>() {
+	
+		                @Override
+		                public void updateItem(Object item, boolean empty) {
+		                    super.updateItem(item, empty);
+		                    if (!isEmpty() && item != null) {
+		                    	
+		                    	if(param.getColumn_type() == Type.REAL) this.setTextFill(Color.rgb(0, 237, 229));
+		                    	else if(param.getColumn_type() == Type.CATEGORY) this.setTextFill(Color.rgb(0, 237, 8));
+		                    	else if(param.getColumn_type() == Type.TIME) this.setTextFill(Color.GOLDENROD.brighter().brighter());
+		                    	else if(param.getColumn_type() == Type.INFO) this.setTextFill(Color.LIGHTSLATEGREY.brighter());
+		                    	else if(param.getColumn_type() == Type.REAL_LABEL) this.setTextFill(Color.CORNFLOWERBLUE);
+		                    	else if(param.getColumn_type() == Type.CLASS_LABEL) this.setTextFill(Color.rgb(255, 0, 60));
+		                    	
+		                        setText(item.toString());
+		                    }
+		                }
+		            };
+		        }
+		    };
+		    
+		    
+		    for(int i = 0; i < any_columns.size(); i++) {
+		    	any_columns.get(i).buildColumnFactory(call);
+		    	any_columns.get(i).setContextMenu(new RecordContextMenu(any_columns.get(i), this));
+		    }
+		    
+		    analysis_view = new SexyHistogramPlot();
+		}
 	}
 	
 	/**
@@ -250,7 +306,7 @@ public class CSVTableView extends TableView<Map> {
 	                copySelectionToClipboard();	
 	            }	
 	    });
-		
+	    autoResizeColumns();
     
 	    Callback<RecordColumn, TableCell<Map, Object>> call = new Callback<RecordColumn, TableCell<Map, Object>>() {
 	        public TableCell<Map, Object> call(RecordColumn param) {
@@ -261,12 +317,12 @@ public class CSVTableView extends TableView<Map> {
 	                    super.updateItem(item, empty);
 	                    if (!isEmpty()) {
 	                    	
-	                    	if(param.getColumn_type() == Type.REAL) this.setTextFill(Color.BEIGE);
-	                    	else if(param.getColumn_type() == Type.CATEGORY) this.setTextFill(Color.LIGHTPINK);
-	                    	else if(param.getColumn_type() == Type.TIME) this.setTextFill(Color.GOLDENROD);
-	                    	else if(param.getColumn_type() == Type.INFO) this.setTextFill(Color.LIGHTSLATEGREY);
+	                    	if(param.getColumn_type() == Type.REAL) this.setTextFill(Color.rgb(0, 237, 229));
+	                    	else if(param.getColumn_type() == Type.CATEGORY) this.setTextFill(Color.rgb(0, 237, 8));
+	                    	else if(param.getColumn_type() == Type.TIME) this.setTextFill(Color.GOLDENROD.brighter().brighter());
+	                    	else if(param.getColumn_type() == Type.INFO) this.setTextFill(Color.LIGHTSLATEGREY.brighter());
 	                    	else if(param.getColumn_type() == Type.REAL_LABEL) this.setTextFill(Color.CORNFLOWERBLUE);
-	                    	else if(param.getColumn_type() == Type.CLASS_LABEL) this.setTextFill(Color.LAWNGREEN);
+	                    	else if(param.getColumn_type() == Type.CLASS_LABEL) this.setTextFill(Color.rgb(255, 0, 60));
 	                    	
 	                        setText(item.toString());
 	                    }
@@ -278,9 +334,8 @@ public class CSVTableView extends TableView<Map> {
 	    
 	    for(int i = 0; i < any_columns.size(); i++) {
 	    	any_columns.get(i).buildColumnFactory(call);
+	    	any_columns.get(i).setContextMenu(new RecordContextMenu(any_columns.get(i), this));
 	    }
-
-	    buildMenu();
 	    
 	    analysis_view = new SexyHistogramPlot();
 	}
@@ -294,24 +349,56 @@ public class CSVTableView extends TableView<Map> {
 
 				public void onChanged( 
 	               ListChangeListener.Change<? extends Map> c) {
+					AnyRecord record = mapToRecord(getSelectionModel().getSelectedItems().get(0)); 
 					
+					System.out.println(record.toString());
 				}
 	    });
 		
 	}
 	
 	
-	
-	
-	
-	public void buildMenu() {
+	private AnyRecord mapToRecord(Map<String, Object> map) {
 		
-		for(int i = 0; i < any_columns.size(); i++) {
-	    	any_columns.get(i).setContextMenu(new RecordContextMenu(any_columns.get(i), this));
-	    }
+		AnyRecord myrec = new AnyRecord();
+		
+		Object[] vals = new Object[anyRecord.getField_names().length];
+		for(int i = 0; i < anyRecord.getField_names().length; i++) {
+			vals[i] = map.get(anyRecord.getField_names()[i]);
+		}
+		myrec.setValues(vals);
+		myrec.setType(anyRecord.getType());
+				
+		return myrec;
 		
 	}
 	
+	
+	/**
+	 * Once the columns have been selected with their appropriate types, 
+	 * a record will be created that will govern what an observation record
+	 * will look like
+	 */
+	public void commitRecord() {
+		
+		anyRecord = new AnyRecord();
+		
+		Type[] anyTypes = new Type[any_columns.size()];
+		String[] field_names = new String[any_columns.size()];
+		
+		for(int i = 0; i < any_columns.size(); i++) {
+			
+			anyTypes[i] = any_columns.get(i).getColumn_type();
+			field_names[i] = any_columns.get(i).getName();
+		}
+		
+		anyRecord.setType(anyTypes);
+		anyRecord.setField_names(field_names);
+				
+	}
+	
+	
+		
 	
 	
 	public void fillTable() throws IOException {
@@ -353,7 +440,39 @@ public class CSVTableView extends TableView<Map> {
 	}
 	
 	
-	
+	/**
+	 * Create a record given the following headers
+	 * @param headers
+	 * @return
+	 */
+	public static AnyRecord createRecord(String[] headers, boolean[] categorical) {
+		
+		AnyRecord record = new AnyRecord();
+		
+		String[] fields = new String[headers.length];
+		Object[] values = new Object[headers.length];
+		
+		Type[] types = new Type[headers.length];
+		
+		for(int i = 0; i < headers.length; i++) {
+			
+			if(categorical[i]) {
+				fields[i] = headers[i];
+				values[i] = new String("categorical");
+				types[i] = Type.CATEGORY;
+			}
+			else {
+				fields[i] = headers[i];
+				values[i] = (Float)0f;		
+				types[i] = Type.REAL;
+			}
+		}
+		record.setField_names(fields);
+		record.setValues(values);
+		record.setType(types);
+		
+		return record;		
+	}	
 	
 
 	
@@ -424,38 +543,15 @@ public class CSVTableView extends TableView<Map> {
 		Object[] values = new Object[raw_headers.length];
 		
 
-		if(with_header) {
+		for(int i = 0; i < raw_headers.length; i++) {
 			
-			for(int i = 0; i < raw_headers.length; i++) {
-				
-				if(raw_headers[i].contains("category_") || raw_headers[i].contains("cat_")) {
-					values[i] = marketDataFeed.get(raw_headers[i]);
-				}
-				else if(raw_headers[i].contains("time") || raw_headers[i].contains("date")) {
-					values[i] = marketDataFeed.get(raw_headers[i]);
-				}
-				else {
-					String myval = marketDataFeed.get(raw_headers[i]);
-					if(myval == null || myval == "") values[i] = null;
-					else {
-						values[i] = Float.parseFloat(marketDataFeed.get(raw_headers[i]));	
-					}
-				}
+			String val = marketDataFeed.get(i);
+			if(NumberUtils.isCreatable(val.trim())) {
+				values[i] = Float.parseFloat(val.trim());
 			}
-		}
-		else {
-			
-			for(int i = 0; i < raw_headers.length; i++) {
-				
-				String val = marketDataFeed.get(i);
-				if(NumberUtils.isCreatable(val.trim())) {
-					values[i] = Float.parseFloat(val.trim());
-				}
-				else {
-					values[i] = val;
-				}
+			else {
+				values[i] = val;
 			}
-			
 		}
 		
 		
@@ -546,41 +642,47 @@ public class CSVTableView extends TableView<Map> {
 
         public RecordContextMenu(RecordColumn record_column, CSVTableView my_table) {
 
-        	MenuItem change_to_info = new MenuItem("Info Type");
-        	MenuItem change_to_real = new MenuItem("Numerical Type");
-        	MenuItem change_to_time = new MenuItem("DateTime Type");
-        	MenuItem change_to_cat = new MenuItem("Categorical Type");
-        	MenuItem change_to_class = new MenuItem("Class Label");
-        	MenuItem change_to_num_label = new MenuItem("Numerical Label");
+        	MenuItem change_to_info = new MenuItem("Set to Info");
+        	MenuItem change_to_real = new MenuItem("Set to Numerical");
+        	MenuItem change_to_time = new MenuItem("Set to DateTime");
+        	MenuItem change_to_cat = new MenuItem("Set to Categorical");
+        	MenuItem change_to_class = new MenuItem("Set to Class Label");
+        	MenuItem change_to_num_label = new MenuItem("Set Numerical Label");
         	MenuItem analyze_column = new MenuItem("Analyze Column");
         	
     		change_to_info.setOnAction(event -> {
-    			record_column.setColumn_type(RecordColumn.Type.INFO);    			
+    			record_column.setColumn_type(RecordColumn.Type.INFO);    		
+    			commitRecord();
     			event.consume();
     			my_table.refresh();
             });
     		change_to_real.setOnAction(event -> {
     			record_column.setColumn_type(RecordColumn.Type.REAL);
+    			commitRecord();
     			event.consume();
     			my_table.refresh();
             });
     		change_to_time.setOnAction(event -> {
     			record_column.setColumn_type(RecordColumn.Type.TIME);
+    			commitRecord();
     			event.consume();
     			my_table.refresh();
             });
     		change_to_cat.setOnAction(event -> {
     			record_column.setColumn_type(RecordColumn.Type.CATEGORY);
+    			commitRecord();
     			event.consume();
     			my_table.refresh();
     		});
     		change_to_class.setOnAction(event -> {
     			record_column.setColumn_type(RecordColumn.Type.CLASS_LABEL);
+    			commitRecord();
     			event.consume();
     			my_table.refresh();
     		});
     		change_to_num_label.setOnAction(event -> {
     			record_column.setColumn_type(RecordColumn.Type.REAL_LABEL);
+    			commitRecord();
     			event.consume();
     			my_table.refresh();
     		});
@@ -603,17 +705,11 @@ public class CSVTableView extends TableView<Map> {
     					analysis_view.plot(columnData, record_column.getName());
     				});
     				
-    				
-    				
-    				
-    				System.out.println(columnData.getMax() + " " + columnData.getMin() + " " + columnData.getMean() + " " + columnData.getStandardDeviation());
     			}
     			
     		});
-    		
-    		
-    		getItems().addAll(change_to_info, change_to_real, change_to_time, change_to_cat, change_to_class, change_to_num_label, analyze_column);
-        	
+    		    		
+    		getItems().addAll(change_to_info, change_to_real, change_to_time, change_to_cat, change_to_class, change_to_num_label, analyze_column);  	
         	setStyle(contextSyle);
         }
 

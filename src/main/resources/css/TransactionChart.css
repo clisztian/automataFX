@@ -396,7 +396,8 @@
 .table-view {
     -fx-base: #1d1d1d;
     -fx-control-inner-background: #1d1d1d;
-    -fx-background-color: linear-gradient(to top, rgb(2, 38, 47), rgb(40, 0, 40));
+/*    -fx-background-color: linear-gradient(to top,  rgb(45, 0, 45), rgb(2, 40, 50));*/
+    -fx-background-color: rgb(13, 10, 14);
     -fx-table-cell-border-color: transparent;
     -fx-table-header-border-color: transparent;
     -fx-padding: 5;
@@ -539,70 +540,91 @@
 }
 
 
+.default-color0.chart-area-symbol { -fx-background-color: #00e9f5, #ffa07a; }
+.default-color1.chart-area-symbol { -fx-background-color: #ff194b, #fffacd; }
+.default-color2.chart-area-symbol { -fx-background-color: #3fff38, #d8bfd855; }
+.default-color3.chart-area-symbol { -fx-background-color: #ff7e21, #d8bfd855; }
+.default-color4.chart-area-symbol { -fx-background-color: #21c4ff, #d8bfd855; }
+ 
+.default-color0.chart-series-area-line { -fx-stroke: #00e9f5; -fx-stroke-width: 1.2px;}
+.default-color1.chart-series-area-line { -fx-stroke: #ff194b; -fx-stroke-width: 1.2px;}
+.default-color2.chart-series-area-line { -fx-stroke: #3fff38; -fx-stroke-width: 1.2px;}
+.default-color3.chart-series-area-line { -fx-stroke: #ff7e21; -fx-stroke-width: 1.2px;}
+.default-color4.chart-series-area-line { -fx-stroke: #21c4ff; -fx-stroke-width: 1.2px;}
+ 
+.default-color0.chart-series-area-fill { -fx-fill: #00e9f555; }
+.default-color1.chart-series-area-fill { -fx-fill: #ff194b55; }
+.default-color2.chart-series-area-fill { -fx-fill: #3fff3855; }
+.default-color3.chart-series-area-fill { -fx-fill: #ff7e2155; }
+.default-color4.chart-series-area-fill { -fx-fill: #21c4ff55; }
+
+/*
 .default-color0.chart-area-symbol {
-    -fx-background-color: #66b0ff;
-/*    -fx-padding: 0;*/
+    -fx-background-color: rgb(252, 164, 198); 
+    -fx-padding: 0;
 }
 .default-color1.chart-area-symbol {
-    -fx-background-color: #ca99ff;
-/*    -fx-padding: 0;*/
+    -fx-background-color: rgb(156, 235, 255); 
+    -fx-padding: 0;
 }
 .default-color2.chart-area-symbol {
-    -fx-background-color: #4d6680;
-/*    -fx-padding: 0;*/
+    -fx-background-color: rgb(189, 252, 184);
+    -fx-padding: 0;
 }
 .default-color3.chart-area-symbol {
-    -fx-background-color: #ff4d4d;
-/*    -fx-padding: 0;*/
+    -fx-background-color: rgb(202, 172, 252); 
+    -fx-padding: 0;
 }
 .default-color4.chart-area-symbol {
-    -fx-background-color: #ffa366;
-/*    -fx-padding: 0;*/
+    -fx-background-color: rgb(250, 155, 140); 
+    -fx-padding: 0;
 }
 
+/*
 .default-color0.chart-series-area-line { 
-    -fx-stroke: #66b0ff; 
-    -fx-stroke-width: 1px; 
+    -fx-stroke: rgb(252, 164, 198); 
+    -fx-stroke-width: 1.2px; 
 }
 .default-color1.chart-series-area-line { 
-    -fx-stroke: #ca99ff; 
-    -fx-stroke-width: 1px; 
+    -fx-stroke: rgb(156, 235, 255); 
+    -fx-stroke-width: 1.2px; 
 }
 .default-color2.chart-series-area-line { 
-    -fx-stroke: #4d6680; 
-    -fx-stroke-width: 1px; 
+    -fx-stroke: rgb(189, 252, 184); 
+    -fx-stroke-width: 1.2px; 
 }
 .default-color3.chart-series-area-line { 
-    -fx-stroke: #ff4d4d; 
-    -fx-stroke-width: 1px; 
+    -fx-stroke: rgb(202, 172, 252); 
+    -fx-stroke-width: 1.2px; 
+    
 }
 .default-color4.chart-series-area-line { 
-    -fx-stroke: #ffa366; 
-    -fx-stroke-width: 1px; 
+    -fx-stroke: rgb(250, 155, 140); 
+    -fx-stroke-width: 1.2px; 
 }
 
 
 .default-color0.chart-series-area-fill { 
-    -fx-fill: linear-gradient(to top, #66b0ff, rgba(255,255,255,0)); 
+    -fx-fill: linear-gradient(to top, rgb(252, 3, 98), rgba(252, 3, 98,.3)); 
     -fx-blend-mode: OVERLAY;
 }
 .default-color1.chart-series-area-fill { 
-    -fx-fill: linear-gradient(to top, #ca99ff, rgba(255,255,255,0)); 
+    -fx-fill: linear-gradient(to top, rgb(0, 204, 255), rgba(0, 204, 255,.3)); 
     -fx-blend-mode: OVERLAY;
 }
 .default-color2.chart-series-area-fill { 
-    -fx-fill: linear-gradient(to top, #4d6680, rgba(255,255,255,0)); 
+    -fx-fill: linear-gradient(to top, rgb(17, 250, 0), rgba(17, 250, 0, .3)); 
     -fx-blend-mode: OVERLAY;
 }
 .default-color3.chart-series-area-fill { 
-    -fx-fill: linear-gradient(to top, #ff4d4d, rgba(255,255,255,0)); 
+    -fx-fill: linear-gradient(to top, rgb(139, 71, 255) rgba(139, 71, 255, .3)); 
     -fx-blend-mode: OVERLAY;
 }
 .default-color4.chart-series-area-fill { 
-    -fx-fill: linear-gradient(to top, #ffa366, rgba(255,255,255,0)); 
+    -fx-fill: linear-gradient(to top, rgb(245, 33, 0), rgba(245, 33, 0, .3)); 
     -fx-blend-mode: OVERLAY;
 }
-
+*/
 
 
 

@@ -19,7 +19,7 @@ public class TestCSVTableView extends Application {
 	@Override
 	public void start(Stage arg0) throws Exception {
 		
-		CSVTableView mytable = new CSVTableView("data/clean1.data", false);
+		CSVTableView mytable = new CSVTableView("data/breast-cancer.csv");
 		
 		RadialGradient gradient = new RadialGradient(0, 0, 0.5, 0.25, 0.45, true, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.rgb(2, 58, 87)),
