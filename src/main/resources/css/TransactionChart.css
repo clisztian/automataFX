@@ -540,6 +540,22 @@
 }
 
 
+.chart-bar {
+    -fx-border-color: rgba(177, 235, 252, .8);
+    -fx-border-width: 2;
+    -fx-bar-fill: black;
+    -fx-background-color: black;
+    -fx-background-insets: 0,1,2;
+    -fx-background-radius: 5 5 0 0, 4 4 0 0, 3 3 0 0;
+    -fx-effect: dropshadow( gaussian , rgb(210, 83, 200) , 25 , .4 , 0, 0 );
+}
+
+.chart-bar:hover {
+    -fx-bar-fill: rgba(177, 235, 252);
+    -fx-background-color: black;
+}
+
+
 .default-color0.chart-area-symbol { -fx-background-color: #00e9f5, #ffa07a; }
 .default-color1.chart-area-symbol { -fx-background-color: #ff194b, #fffacd; }
 .default-color2.chart-area-symbol { -fx-background-color: #3fff38, #d8bfd855; }

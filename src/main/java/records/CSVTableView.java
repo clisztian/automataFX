@@ -1,15 +1,21 @@
 package records;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.math.NumberUtils;
@@ -17,8 +23,10 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import com.csvreader.CsvReader;
 
+import controls.EmbeddingPanel;
 import dataio.CSVInterface;
 import examples.TableCellTextColorExample.TableData;
+import graphics.SexyCategoryChart;
 import graphics.SexyHistogramPlot;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -26,6 +34,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -44,7 +53,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
 import records.RecordColumn.Type;
-
+import utils.DataPair;
+import utils.MutableInt;
 
 /**
  * An interactive table view that allows a user to 
@@ -73,9 +83,12 @@ import records.RecordColumn.Type;
 public class CSVTableView extends TableView<Map> {
 
 	
+	private EmbeddingPanel embedding_panel;
+	
 	private ArrayList<RecordColumn> any_columns;
 	private CsvReader marketDataFeed;
 	private SexyHistogramPlot analysis_view;
+	private SexyCategoryChart category_analysis_view;
 	
 	/**
 	 * The record that governs the table
@@ -97,6 +110,9 @@ public class CSVTableView extends TableView<Map> {
 	private String[] field_names;
 	private boolean with_header;
 
+	private final Color start = Color.rgb(177, 235, 252);
+	private final Color end = Color.rgb(217, 24, 185);
+	
 	/**
 	 * A menu to change the state of a column
 	 */
@@ -117,186 +133,342 @@ public class CSVTableView extends TableView<Map> {
 			".menu-item:focused .label {\n" + 
 			"  -fx-text-fill: white;\n" + 
 			"}";
+	
+	private MenuItem embed_data;
+	
+	private ContextMenu data_context_menu;
+	
+	private HashMap<String, RecordColumn> column_map;
 
 
-	/**
-	 * If .csv file already has a usable descriptive header, simply 
-	 * create anyRecord with from a csv instance and build table
-	 * @param file_name
-	 * @throws IOException
-	 */
-	public CSVTableView(String file_name) throws IOException {
+//	/**
+//	 * If .csv file already has a usable descriptive header, simply 
+//	 * create anyRecord with from a csv instance and build table
+//	 * @param file_name
+//	 * @throws IOException
+//	 */
+//	public CSVTableView(String file_name) throws IOException {
+//		
+//		
+//
+//		any_columns = new ArrayList<RecordColumn>();
+//		
+//		this.with_header = false;
+//		ClassLoader classLoader = getClass().getClassLoader();
+//		File file = new File(classLoader.getResource(file_name).getFile());
+//
+//		marketDataFeed = new CsvReader(file.getAbsolutePath());		
+//		marketDataFeed.readHeaders();
+//		
+//		//find out how many values total
+//	
+//		field_names = marketDataFeed.getHeaders();
+//		total_columns = field_names.length;
+//		raw_headers = field_names;
+//		
+////		for(int i = 0; i < total_columns; i++) {
+////			System.out.println(field_names[i]);
+////		}
+//		
+//
+//		if(marketDataFeed.readRecord()) {
+//			String[] raw_vals = marketDataFeed.getValues();
+//		
+//					
+//			boolean[] categorical = new boolean[total_columns];
+//			for(int i = 0; i < total_columns; i++) {
+//				
+//				if(NumberUtils.isCreatable(raw_vals[i].trim())) {
+//					categorical[i] = false;
+//				}
+//				else {
+//					categorical[i] = true;
+//				}
+//			}
+//	
+//			/**
+//			 * Now create a default record with the raw headers
+//			 */
+//			anyRecord = createRecord(field_names, categorical);
+//	
+//			
+//			/**
+//			 * Setup the table
+//			 */		
+//			for(int i = 0; i < raw_vals.length; i++) {	
+//	
+//				RecordColumn column = new RecordColumn(field_names[i], categorical[i]);		
+//				column.setCellValueFactory(new MapValueFactory<>(field_names[i]));			
+//				any_columns.add(column);
+//			}
+//			
+//				
+//			getColumns().addAll(any_columns);
+//			setEditable(false);
+//			
+//			getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+//			//getStylesheets().add("css/TransactionChart.css");
+//			getStylesheets().add(getClass().getClassLoader().getResource("css/TransactionChart.css").toExternalForm());
+//			setPlaceholder(new Text("Loading expenses..."));
+//			
+//		    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
+//		    setOnKeyPressed(event -> {	
+//		            if (keyCodeCopy.match(event)) {	
+//		                copySelectionToClipboard();	
+//		            }	
+//		    });
+//		  
+//	    
+//		    Callback<RecordColumn, TableCell<Map, Object>> call = new Callback<RecordColumn, TableCell<Map, Object>>() {
+//		        public TableCell<Map, Object> call(RecordColumn param) {
+//		            return new TableCell<Map, Object>() {
+//	
+//		                @Override
+//		                public void updateItem(Object item, boolean empty) {
+//		                    super.updateItem(item, empty);
+//		                    if (!isEmpty() && item != null) {
+//		                    	
+//		                    	if(param.getColumn_type() == Type.REAL) this.setTextFill(start);
+//		                    	else if(param.getColumn_type() == Type.CATEGORY) this.setTextFill(start.interpolate(end, .3f));
+//		                    	else if(param.getColumn_type() == Type.TIME) this.setTextFill(start.interpolate(end, .6f));
+//		                    	else if(param.getColumn_type() == Type.INFO) this.setTextFill(Color.LIGHTSLATEGREY.brighter());
+//		                    	else if(param.getColumn_type() == Type.REAL_LABEL) this.setTextFill(start.interpolate(end, 1f));
+//		                    	else if(param.getColumn_type() == Type.CLASS_LABEL) this.setTextFill(start.interpolate(end, .9f));
+//		                    	
+//		                        setText(item.toString());
+//		                    }
+//		                }
+//		            };
+//		        }
+//		    };
+//		    
+//		    
+//		    for(int i = 0; i < any_columns.size(); i++) {
+//		    	any_columns.get(i).buildColumnFactory(call);
+//		    	any_columns.get(i).setContextMenu(new RecordContextMenu(any_columns.get(i), this));
+//		    }
+//		    
+//		    analysis_view = new SexyHistogramPlot();
+//		    analysis_view.setUnderyling_data(getItems());
+//		    category_analysis_view = new SexyCategoryChart();
+//		    embedding_panel = new EmbeddingPanel();
+//		    embedding_panel.buildController();
+//		    embedding_panel.buildClauseScatterPane();
+//		    installMenu();
+//		    commitRecord();
+//		}
+//	}
+	
+//	/**
+//	 * Instantiate a new table given a file (.csv)
+//	 * Every row in file is assumed to be comma deliminated (will open for tab or semicolon later)
+//	 * With_header if true, first line in file is column names, else, no header exists and a default header will be build
+//	 * 
+//	 * @param file_name
+//	 * @param with_header 
+//	 * @throws IOException
+//	 */
+//	public CSVTableView(String file_name, boolean with_header) throws IOException {
+//		
+//		any_columns = new ArrayList<RecordColumn>();
+//		
+//		this.with_header = false;
+//		ClassLoader classLoader = getClass().getClassLoader();
+//		File file = new File(classLoader.getResource(file_name).getFile());
+//
+//		marketDataFeed = new CsvReader(file.getAbsolutePath());		
+//		marketDataFeed.readHeaders();
+//		
+//		//find out how many values total
+//	
+//		String[] _headers = marketDataFeed.getHeaders();
+//		total_columns = _headers.length;
+//
+//		raw_headers = new String[total_columns];
+//		for(int i = 0; i < total_columns; i++) {
+//			
+//			//System.out.print(_headers[i] + " ");
+//			//if a numerical value, make it Fi
+//			if(NumberUtils.isCreatable(_headers[i].trim())) {
+//				raw_headers[i] = "F" + i;
+//			}
+//			else {
+//				raw_headers[i] = "cat_C" + i;
+//			}
+//		}
+//		System.out.println();
+//		
+//		/**
+//		 * Now create a default record with the raw headers
+//		 */
+//		anyRecord = createRecord(raw_headers);
+//		field_names = anyRecord.getField_names();
+//		
+//		/**
+//		 * Setup the table
+//		 */
+//		
+//		for(int i = 0; i < raw_headers.length; i++) {	
+//
+//			RecordColumn column = new RecordColumn(raw_headers[i]);		
+//			column.setCellValueFactory(new MapValueFactory<>(raw_headers[i]));			
+//			any_columns.add(column);
+//		}
+//		
+//			
+//		getColumns().addAll(any_columns);
+//		setEditable(false);
+//		
+//		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+//		//getStylesheets().add("css/TransactionChart.css");
+//		getStylesheets().add(getClass().getClassLoader().getResource("css/TransactionChart.css").toExternalForm());
+//		setPlaceholder(new Text("Loading expenses..."));
+//		
+//	    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
+//	    setOnKeyPressed(event -> {	
+//	            if (keyCodeCopy.match(event)) {	
+//	                copySelectionToClipboard();	
+//	            }	
+//	    });
+//	    autoResizeColumns();
+//    
+//	    Callback<RecordColumn, TableCell<Map, Object>> call = new Callback<RecordColumn, TableCell<Map, Object>>() {
+//	        public TableCell<Map, Object> call(RecordColumn param) {
+//	            return new TableCell<Map, Object>() {
+//
+//	                @Override
+//	                public void updateItem(Object item, boolean empty) {
+//	                    super.updateItem(item, empty);
+//	                    if (!isEmpty()) {
+//	                    	
+//	                    	if(param.getColumn_type() == Type.REAL) this.setTextFill(start);
+//	                    	else if(param.getColumn_type() == Type.CATEGORY) this.setTextFill(start.interpolate(end, .3f));
+//	                    	else if(param.getColumn_type() == Type.TIME) this.setTextFill(start.interpolate(end, .6f));
+//	                    	else if(param.getColumn_type() == Type.INFO) this.setTextFill(Color.LIGHTSLATEGREY.brighter());
+//	                    	else if(param.getColumn_type() == Type.REAL_LABEL) this.setTextFill(start.interpolate(end, 1f));
+//	                    	else if(param.getColumn_type() == Type.CLASS_LABEL) this.setTextFill(start.interpolate(end, .9f));
+//	                    	
+//	                        setText(item.toString());
+//	                    }
+//	                }
+//	            };
+//	        }
+//	    };
+//	    
+//	    
+//	    for(int i = 0; i < any_columns.size(); i++) {
+//	    	any_columns.get(i).buildColumnFactory(call);
+//	    	any_columns.get(i).setContextMenu(new RecordContextMenu(any_columns.get(i), this));
+//	    }
+//	    
+//	    analysis_view = new SexyHistogramPlot();
+//	    analysis_view.setUnderyling_data(getItems());
+//	    category_analysis_view = new SexyCategoryChart();
+//	    embedding_panel = new EmbeddingPanel();
+//	    embedding_panel.buildController();
+//	    embedding_panel.buildClauseScatterPane();
+//	    installMenu();
+//	    commitRecord();
+//	    
+//	}
+	
+	
+	public CSVTableView() {
 		
-		
+	}
 
+	public void createTable(File file) throws IOException {
+		
+		with_header = false;
+		try {
+			with_header = checkIfHeaderExists(file);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		any_columns = new ArrayList<RecordColumn>();
-		
-		this.with_header = false;
-		ClassLoader classLoader = getClass().getClassLoader();
-		File file = new File(classLoader.getResource(file_name).getFile());
-
 		marketDataFeed = new CsvReader(file.getAbsolutePath());		
 		marketDataFeed.readHeaders();
 		
-		//find out how many values total
-	
-		field_names = marketDataFeed.getHeaders();
-		total_columns = field_names.length;
-		raw_headers = field_names;
 		
-//		for(int i = 0; i < total_columns; i++) {
-//			System.out.println(field_names[i]);
-//		}
-		
-
-		if(marketDataFeed.readRecord()) {
-			String[] raw_vals = marketDataFeed.getValues();
-		
-		
-//			for(int i = 0; i < raw_vals.length; i++) {
-//				System.out.println(raw_vals[i]);
-//			}
+		if(with_header) {
 			
+			field_names = marketDataFeed.getHeaders();
+			total_columns = field_names.length;
+			raw_headers = field_names;
+			
+			if(marketDataFeed.readRecord()) {
+				
+				String[] raw_vals = marketDataFeed.getValues();
+			
+						
+				boolean[] categorical = new boolean[total_columns];
+				for(int i = 0; i < total_columns; i++) {
 					
-			boolean[] categorical = new boolean[total_columns];
+					if(NumberUtils.isCreatable(raw_vals[i].trim())) {
+						categorical[i] = false;
+					}
+					else {
+						categorical[i] = true;
+					}
+				}
+		
+				/**
+				 * Now create a default record with the raw headers
+				 */
+				anyRecord = createRecord(field_names, categorical);
+		
+				
+				/**
+				 * Setup the table
+				 */		
+				for(int i = 0; i < raw_vals.length; i++) {	
+		
+					RecordColumn column = new RecordColumn(field_names[i], categorical[i]);		
+					column.setCellValueFactory(new MapValueFactory<>(field_names[i]));			
+					any_columns.add(column);
+				}
+			
+			}
+					
+		}
+		else {
+			
+			String[] _headers = marketDataFeed.getHeaders();
+			total_columns = _headers.length;
+
+			raw_headers = new String[total_columns];
 			for(int i = 0; i < total_columns; i++) {
 				
-				if(NumberUtils.isCreatable(raw_vals[i].trim())) {
-					categorical[i] = false;
+				if(NumberUtils.isCreatable(_headers[i].trim())) {
+					raw_headers[i] = "F" + i;
 				}
 				else {
-					categorical[i] = true;
+					raw_headers[i] = "cat_C" + i;
 				}
 			}
-	
+			System.out.println();
+			
 			/**
 			 * Now create a default record with the raw headers
 			 */
-			anyRecord = createRecord(field_names, categorical);
-	
+			anyRecord = createRecord(raw_headers);
+			field_names = anyRecord.getField_names();
 			
-			/**
-			 * Setup the table
-			 */		
-			for(int i = 0; i < raw_vals.length; i++) {	
-	
-				RecordColumn column = new RecordColumn(field_names[i], categorical[i]);		
-				column.setCellValueFactory(new MapValueFactory<>(field_names[i]));			
+			for(int i = 0; i < raw_headers.length; i++) {	
+
+				RecordColumn column = new RecordColumn(raw_headers[i]);		
+				column.setCellValueFactory(new MapValueFactory<>(raw_headers[i]));			
 				any_columns.add(column);
 			}
 			
-				
-			getColumns().addAll(any_columns);
-			setEditable(false);
-			
-			getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-			//getStylesheets().add("css/TransactionChart.css");
-			getStylesheets().add(getClass().getClassLoader().getResource("css/TransactionChart.css").toExternalForm());
-			setPlaceholder(new Text("Loading expenses..."));
-			
-		    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
-		    setOnKeyPressed(event -> {	
-		            if (keyCodeCopy.match(event)) {	
-		                copySelectionToClipboard();	
-		            }	
-		    });
-		    autoResizeColumns();
-	    
-		    Callback<RecordColumn, TableCell<Map, Object>> call = new Callback<RecordColumn, TableCell<Map, Object>>() {
-		        public TableCell<Map, Object> call(RecordColumn param) {
-		            return new TableCell<Map, Object>() {
-	
-		                @Override
-		                public void updateItem(Object item, boolean empty) {
-		                    super.updateItem(item, empty);
-		                    if (!isEmpty() && item != null) {
-		                    	
-		                    	if(param.getColumn_type() == Type.REAL) this.setTextFill(Color.rgb(0, 237, 229));
-		                    	else if(param.getColumn_type() == Type.CATEGORY) this.setTextFill(Color.rgb(0, 237, 8));
-		                    	else if(param.getColumn_type() == Type.TIME) this.setTextFill(Color.GOLDENROD.brighter().brighter());
-		                    	else if(param.getColumn_type() == Type.INFO) this.setTextFill(Color.LIGHTSLATEGREY.brighter());
-		                    	else if(param.getColumn_type() == Type.REAL_LABEL) this.setTextFill(Color.CORNFLOWERBLUE);
-		                    	else if(param.getColumn_type() == Type.CLASS_LABEL) this.setTextFill(Color.rgb(255, 0, 60));
-		                    	
-		                        setText(item.toString());
-		                    }
-		                }
-		            };
-		        }
-		    };
-		    
-		    
-		    for(int i = 0; i < any_columns.size(); i++) {
-		    	any_columns.get(i).buildColumnFactory(call);
-		    	any_columns.get(i).setContextMenu(new RecordContextMenu(any_columns.get(i), this));
-		    }
-		    
-		    analysis_view = new SexyHistogramPlot();
-		}
-	}
-	
-	/**
-	 * Instantiate a new table given a file (.csv)
-	 * Every row in file is assumed to be comma deliminated (will open for tab or semicolon later)
-	 * With_header if true, first line in file is column names, else, no header exists and a default header will be build
-	 * 
-	 * @param file_name
-	 * @param with_header 
-	 * @throws IOException
-	 */
-	public CSVTableView(String file_name, boolean with_header) throws IOException {
-		
-		any_columns = new ArrayList<RecordColumn>();
-		
-		this.with_header = false;
-		ClassLoader classLoader = getClass().getClassLoader();
-		File file = new File(classLoader.getResource(file_name).getFile());
-
-		marketDataFeed = new CsvReader(file.getAbsolutePath());		
-		marketDataFeed.readHeaders();
-		
-		//find out how many values total
-	
-		String[] _headers = marketDataFeed.getHeaders();
-		total_columns = _headers.length;
-
-		raw_headers = new String[total_columns];
-		for(int i = 0; i < total_columns; i++) {
-			
-			//System.out.print(_headers[i] + " ");
-			//if a numerical value, make it Fi
-			if(NumberUtils.isCreatable(_headers[i].trim())) {
-				raw_headers[i] = "F" + i;
-			}
-			else {
-				raw_headers[i] = "cat_C" + i;
-			}
-		}
-		System.out.println();
-		
-		/**
-		 * Now create a default record with the raw headers
-		 */
-		anyRecord = createRecord(raw_headers);
-		field_names = anyRecord.getField_names();
-		
-		/**
-		 * Setup the table
-		 */
-		
-		for(int i = 0; i < raw_headers.length; i++) {	
-
-			RecordColumn column = new RecordColumn(raw_headers[i]);		
-			column.setCellValueFactory(new MapValueFactory<>(raw_headers[i]));			
-			any_columns.add(column);
 		}
 		
-			
 		getColumns().addAll(any_columns);
 		setEditable(false);
 		
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		//getStylesheets().add("css/TransactionChart.css");
 		getStylesheets().add(getClass().getClassLoader().getResource("css/TransactionChart.css").toExternalForm());
 		setPlaceholder(new Text("Loading expenses..."));
 		
@@ -306,7 +478,7 @@ public class CSVTableView extends TableView<Map> {
 	                copySelectionToClipboard();	
 	            }	
 	    });
-	    autoResizeColumns();
+	  
     
 	    Callback<RecordColumn, TableCell<Map, Object>> call = new Callback<RecordColumn, TableCell<Map, Object>>() {
 	        public TableCell<Map, Object> call(RecordColumn param) {
@@ -315,14 +487,14 @@ public class CSVTableView extends TableView<Map> {
 	                @Override
 	                public void updateItem(Object item, boolean empty) {
 	                    super.updateItem(item, empty);
-	                    if (!isEmpty()) {
+	                    if (!isEmpty() && item != null) {
 	                    	
-	                    	if(param.getColumn_type() == Type.REAL) this.setTextFill(Color.rgb(0, 237, 229));
-	                    	else if(param.getColumn_type() == Type.CATEGORY) this.setTextFill(Color.rgb(0, 237, 8));
-	                    	else if(param.getColumn_type() == Type.TIME) this.setTextFill(Color.GOLDENROD.brighter().brighter());
+	                    	if(param.getColumn_type() == Type.REAL) this.setTextFill(start);
+	                    	else if(param.getColumn_type() == Type.CATEGORY) this.setTextFill(start.interpolate(end, .3f));
+	                    	else if(param.getColumn_type() == Type.TIME) this.setTextFill(start.interpolate(end, .6f));
 	                    	else if(param.getColumn_type() == Type.INFO) this.setTextFill(Color.LIGHTSLATEGREY.brighter());
-	                    	else if(param.getColumn_type() == Type.REAL_LABEL) this.setTextFill(Color.CORNFLOWERBLUE);
-	                    	else if(param.getColumn_type() == Type.CLASS_LABEL) this.setTextFill(Color.rgb(255, 0, 60));
+	                    	else if(param.getColumn_type() == Type.REAL_LABEL) this.setTextFill(start.interpolate(end, 1f));
+	                    	else if(param.getColumn_type() == Type.CLASS_LABEL) this.setTextFill(start.interpolate(end, .9f));
 	                    	
 	                        setText(item.toString());
 	                    }
@@ -337,11 +509,97 @@ public class CSVTableView extends TableView<Map> {
 	    	any_columns.get(i).setContextMenu(new RecordContextMenu(any_columns.get(i), this));
 	    }
 	    
-	    analysis_view = new SexyHistogramPlot();
+	    
+	    buildAnalyticsTables();
+		
+	}
+	
+	/**
+	 * Builds an assortment of tables used for analytics
+	 */
+	private void buildAnalyticsTables() {
+		
+		
+		analysis_view = new SexyHistogramPlot();
+	    analysis_view.setUnderyling_data(getItems());
+	    category_analysis_view = new SexyCategoryChart();
+	    embedding_panel = new EmbeddingPanel();
+	    embedding_panel.buildController();
+	    embedding_panel.buildClauseScatterPane();
+	    installMenu();
+	    commitRecord();
+		
+	}
+	
+	
+	/**
+	 * Check if file has header or not
+	 * If there is a numerical value in the first line of the file, 
+	 * assumes that there is no header
+	 * @param file
+	 * @return
+	 * @throws IOException 
+	 */
+	private boolean checkIfHeaderExists(File file) throws IOException {
+		
+		System.out.println(file.toString());
+//		ClassLoader classLoader = getClass().getClassLoader();
+//		File file = new File(classLoader.getResource(file_name).getFile());
+
+		BufferedReader br = new BufferedReader(new FileReader(file));  //creates a buffering character input stream  
+		
+		StringBuffer sb=new StringBuffer();    //constructs a string buffer with no characters  
+		String[] line = br.readLine().split("[,]+");
+	
+		
+		for(int i = 0; i < line.length; i++) {			
+			if(NumberUtils.isCreatable(line[i].trim())) {
+				br.close();
+				return false;
+			}			
+		}
+		br.close();
+		return true;
 	}
 	
 
+	/**
+	 * Create and install menu on datatable
+	 */
+	private void installMenu() {
+		
+		
+		embed_data = new MenuItem("Create Embedding");
+		data_context_menu = new ContextMenu();
+		
+		embed_data.setOnAction(event -> {
+			
+			DataPair data = getDataPairFromRecords();	
+			System.out.println("Length: " + data.getData().length);
+			
+			if(data != null) {
+				embedding_panel.createMap(data, getSelectionModel().getSelectedItems());
+			}			
+			event.consume();			
+        });
+		
+		data_context_menu.getItems().add(embed_data);
+		data_context_menu.setStyle(contextSyle);
+		
+		setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() { 
+            @Override
+            public void handle(ContextMenuEvent event) {
+            	data_context_menu.show(getScene().getWindow(),event.getScreenX(), event.getScreenY());
+            }
+        });
+	}
+	
+	
 
+	/**
+	 * Creates a record for any change in selection in the table
+	 * Can be used for prediction, viewing analytics, or any other output
+	 */
 	public void setSelectionListener() {
 		
 		getSelectionModel().getSelectedItems().addListener(
@@ -349,15 +607,21 @@ public class CSVTableView extends TableView<Map> {
 
 				public void onChanged( 
 	               ListChangeListener.Change<? extends Map> c) {
-					AnyRecord record = mapToRecord(getSelectionModel().getSelectedItems().get(0)); 
 					
-					System.out.println(record.toString());
+					if(getSelectionModel().getSelectedItems().size() > 0) {
+						AnyRecord record = mapToRecord(getSelectionModel().getSelectedItems().get(0)); 
+					}
 				}
 	    });
 		
 	}
 	
 	
+	/**
+	 * Maps a generic map into a record given the AnyRecord structure
+	 * @param map
+	 * @return
+	 */
 	private AnyRecord mapToRecord(Map<String, Object> map) {
 		
 		AnyRecord myrec = new AnyRecord();
@@ -638,6 +902,65 @@ public class CSVTableView extends TableView<Map> {
 	
 	
 	
+	public DataPair getDataPairFromRecords() {
+		
+		encodeCategoryColumns();
+			
+		int n_feat = 0; 
+		for(int i = 0; i < anyRecord.getType().length; i++) {
+			
+			if(anyRecord.getType()[i] == Type.CATEGORY) {
+				n_feat++;
+			}
+			else if(anyRecord.getType()[i] == Type.REAL) {
+				n_feat++;
+			}
+			else if(anyRecord.getType()[i] == Type.TIME) {
+				n_feat++;
+			}
+		}
+		
+
+		ObservableList<Map> mymap = getSelectionModel().getSelectedItems();	
+		
+		if(mymap.size() > 0) {
+		
+			float[][] umap_vals = new float[mymap.size()][];
+			
+			int count = 0;
+			for(Map map : mymap) {
+				
+				AnyRecord record = mapToRecord(map);
+				umap_vals[count] = new float[n_feat];
+	
+				int i_maps = 0;
+				for(int i = 0; i < anyRecord.getType().length; i++) {
+					
+					if(record.getType()[i] == Type.CATEGORY) {
+						umap_vals[count][i_maps] = 1f*column_map.get(anyRecord.getField_names()[i]).getCategory_map().get(record.getValues()[i].toString());
+						i_maps++;
+					}
+					else if(record.getType()[i] == Type.REAL) {
+						umap_vals[count][i_maps] = (Float)record.getValues()[i];
+						i_maps++;
+					}
+					else if(record.getType()[i] == Type.TIME) {
+						
+					}
+				}	
+				count++;
+			}
+			int[] labels = new int[mymap.size()];
+			return new DataPair(umap_vals, labels);
+		}
+		
+		return null;
+		
+	}
+	
+	
+	
+	
 	class RecordContextMenu extends ContextMenu {
 
         public RecordContextMenu(RecordColumn record_column, CSVTableView my_table) {
@@ -706,6 +1029,28 @@ public class CSVTableView extends TableView<Map> {
     				});
     				
     			}
+    			else if(record_column.getColumn_type() == RecordColumn.Type.CATEGORY || record_column.getColumn_type() == RecordColumn.Type.CLASS_LABEL) {
+    				
+    				HashMap<String, MutableInt> category_map = new HashMap<String, MutableInt>();
+    				
+    				for (Map item : my_table.getItems()) {
+    					
+    					String myval = record_column.getCellObservableValue(item).getValue().toString();
+    					
+    					MutableInt mi = category_map.get(myval);
+    					if(mi == null) {
+    						category_map.put(myval, new MutableInt());
+    					}
+    					else mi.increment();
+    				}
+    				
+    				category_analysis_view.show();
+    				Platform.runLater(() -> {
+    					category_analysis_view.plot(category_map, record_column.getName());   
+    					setMouseInteraction();
+    				});
+    				
+    			}
     			
     		});
     		    		
@@ -714,6 +1059,96 @@ public class CSVTableView extends TableView<Map> {
         }
 
     }
+	
+	/**
+	 * Sets the mouse interaction for the categories to plot conditionally
+	 */
+	private void setMouseInteraction() {
+		
+		for(XYChart.Data<String, Number> d : category_analysis_view.getSexy_bar_chart().getData().get(0).getData()) {
+			
+			
+			d.getNode().setOnMouseEntered(e -> {
+				d.getNode().setStyle("-fx-background-color: rgb(77, 135, 152, .6);");
+				analysis_view.conditionalDataExtractEquals(category_analysis_view.getSexy_bar_chart().getData().get(0).getName(), d.getXValue());
+				
+				embedding_panel.enlightenBulbs(category_analysis_view.getSexy_bar_chart().getData().get(0).getName(), d.getXValue());
+				
+			});
+			
+			d.getNode().setOnMouseExited(e -> {
+				d.getNode().setStyle("-fx-background-color: black;");
+				analysis_view.removeLast();
+				
+				embedding_panel.delightenBulbs();
+				
+			});			
+		}
+		
+		
+		
+	}
+	
+	
+	/**
+	 * Encode all the category columns into integers
+	 */
+	private void encodeCategoryColumns() {
+		
+		column_map = new HashMap<String, RecordColumn>();
+		
+		for(TableColumn record_column : getColumns()) {
+			
+			column_map.put(((RecordColumn)record_column).getName(), ((RecordColumn)record_column));
+			if(record_column instanceof RecordColumn)  {
+				
+				if(((RecordColumn)record_column).getColumn_type() == RecordColumn.Type.CATEGORY || ((RecordColumn)record_column).getColumn_type() == RecordColumn.Type.CLASS_LABEL) {
+    				
+    				HashMap<String, MutableInt> category_map = new HashMap<String, MutableInt>();
+    			    				
+    				for (Map item : getItems()) {
+    					
+    					String myval = ((RecordColumn)record_column).getCellObservableValue(item).getValue().toString();
+    					
+    					MutableInt mi = category_map.get(myval);
+    					if(mi == null) {
+    						category_map.put(myval, new MutableInt());
+    					}
+    					else mi.increment();
+    				}
+    				
+    				SortedSet<Map.Entry<String, MutableInt>> sort_cats = entriesSortedByValues(category_map);
+    				HashMap<String, Integer> mymap = new HashMap<String, Integer>();
+    				
+    				int count = 0;
+    				for(Map.Entry<String, MutableInt> ent : sort_cats) {
+    					mymap.put(ent.getKey(), count);
+    					count++;
+    				}
+    				((RecordColumn)record_column).setCategory_map(mymap);
+
+    			}
+			}
+			
+		}
+	}
+	
+	
+	static <K,V extends Comparable<? super V>>
+	SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
+	    SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<Map.Entry<K,V>>(
+	        new Comparator<Map.Entry<K,V>>() {
+	            @Override public int compare(Map.Entry<K,V> e1, Map.Entry<K,V> e2) {
+	                int res = e1.getValue().compareTo(e2.getValue());
+	                return res != 0 ? res : 1;
+	            }
+	        }
+	    );
+	    sortedEntries.addAll(map.entrySet());
+	    return sortedEntries;
+	}
+	
+	
 	
 	
 }

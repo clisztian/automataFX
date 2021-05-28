@@ -22,6 +22,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import tagbio.umap.Umap;
 import tagbio.umap.metric.Metric;
+import utils.DataPair;
 
 public class UMAPane extends Application {
 
@@ -225,29 +226,7 @@ public class UMAPane extends Application {
 	
 }
 
-class DataPair {
-	
-	public DataPair(float[][] d, int[] l) {
-		this.data = d;
-		this.labels = l;
-	}
-	
-	public float[][] getData() {
-		return data;
-	}
-	public void setData(float[][] data) {
-		this.data = data;
-	}
-	public int[] getLabels() {
-		return labels;
-	}
-	public void setLabels(int[] labels) {
-		this.labels = labels;
-	}
-	private float[][] data;
-	private int[] labels;
-	
-}
+
 
 //sMETRICS.put("euclidean", EuclideanMetric.SINGLETON);
 //sMETRICS.put("l2", EuclideanMetric.SINGLETON);

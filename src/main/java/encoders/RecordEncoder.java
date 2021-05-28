@@ -38,6 +38,8 @@ public class RecordEncoder<V>  {
 	 * Encoder map for AnyRecord from RecordTable
 	 */
 	private Map<String, Encoder> encoder_map;
+
+
 	private AnyRecord anyRecord;
 
 
@@ -207,17 +209,35 @@ public class RecordEncoder<V>  {
 
 
 	
-	
+	/**
+	 * Record encoder coming from the CSVTableView
+	 * AnyRecord from CSVTableView is equipped with a Type value that is used to create the record encoder
+	 * 
+	 * Must include the type, and the field name
+	 * If timestamps available, a datetime formatter
+	 * Encodes day of week by default
+	 * 
+	 * @param record the model for the record data point
+	 * @param datetime_format the format used for the time stamp
+	 * @param dim feature dimension for real encoder
+	 * @param hours encode timestamp in hours 
+	 * @param day_of_month encode timestamp by day of month (good for sales data)
+	 * @param month_of_year encode month of year (good for economic data)
+	 * @param week_of_year encode week of the year (good for economic data)
+	 * @return
+	 */
 	public RecordEncoder<V> initiate(AnyRecord record, String datetime_format, int dim, boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year) {
+		
 		
 		if(record.getType() != null) {
 		
+			this.anyRecord = record;
 			encoder_map = new HashMap<String, Encoder>();
 			
 			field_types = record.getType();
 			field_names = record.getField_names();
 						
-			for(int i = 0; i < record.getValues().length; i++) {
+			for(int i = 0; i < record.getType().length; i++) {
 				
 				if(field_types[i] == Type.TIME) {
 
@@ -260,6 +280,7 @@ public class RecordEncoder<V>  {
 	 */
 	public RecordEncoder<V> initiate(AnyRecord record) {
 		
+		this.anyRecord = record;
 		if(record.getField_names() != null) {
 			
 			field_names = record.getField_names();
@@ -370,23 +391,23 @@ public class RecordEncoder<V>  {
 	 * Add a record value from an AnyRecord map
 	 * @param any
 	 */
-	private void addRecordMapValue(AnyRecord any) {
+	private void addRecordMapValue(AnyRecord values) {
 		
-		for(int i = 0; i < any.getField_names().length; i++) {
-			
-			Encoder encode = encoder_map.get(any.getField_names()[i]);
+		for(int i = 0; i < anyRecord.getField_names().length; i++) {
+
+			Encoder encode = encoder_map.get(anyRecord.getField_names()[i]);
 			
 			if(encode != null) {
 				
-				if(any.getType()[i] == Type.TIME && encode instanceof TimeEncoder) {
-					((TimeEncoder)encode).addValue(new Temporal((String)any.getValues()[i]));
+				if(anyRecord.getType()[i] == Type.TIME && encode instanceof TimeEncoder) {
+					((TimeEncoder)encode).addValue(new Temporal((String)values.getValues()[i]));
 				}
-				else if(any.getType()[i] == Type.REAL && encode instanceof Number) {
-					Float value = (Float)any.getValues()[i];
+				else if(anyRecord.getType()[i] == Type.REAL && encode instanceof RealEncoder) {
+					Float value = (Float)values.getValues()[i];
 					((RealEncoder)encode).addValue(value);
 				}
-				else if(any.getType()[i] == Type.CATEGORY) {
-					((CategoricalEncoder)encode).addValue((String)any.getValues()[i]);
+				else if(anyRecord.getType()[i] == Type.CATEGORY) {
+					((CategoricalEncoder)encode).addValue((String)values.getValues()[i]);
 				}
 			}			
 		}
@@ -657,6 +678,84 @@ public class RecordEncoder<V>  {
 		for(int i = 0; i < results.size(); i++) {
 			System.out.println(results.get(i));
 		}
+		
+		
+		
+		/**
+		 * Instantiate record encoder
+		 * 
+		 * public record TimeIndicator(String name, String type, Temporal timestamp, double value) {
+		 * 
+		 */
+		RecordEncoder<AnyRecord> table_encoder = new RecordEncoder<AnyRecord>();
+		
+		AnyRecord any_rec = new AnyRecord();
+		String[] fields = new String[5];
+		fields[0] = "name";
+		fields[1] = "type";
+		fields[2] = "timestamp";
+		fields[3] = "value";
+		fields[4] = "meta";
+		
+		Type[] types = new Type[5];
+		types[0] = Type.CATEGORY;
+		types[1] = Type.CATEGORY;
+		types[2] = Type.TIME;
+		types[3] = Type.REAL;
+		types[4] = Type.INFO;
+		
+		any_rec.setField_names(fields);
+		any_rec.setType(types);
+		
+		table_encoder.initiate(any_rec, "yyyy-MM-dd HH:mm:ss", 10, false, false, false, false);
+		
+
+		for(int i = 0; i < 100; i++) {
+			
+			float value = rng.nextFloat()*10f;
+			int name_c = rng.nextInt(4);
+			int reach_c = rng.nextInt(4);
+			
+			AnyRecord rec = new AnyRecord();
+			
+			Object[] vals = new Object[] {name_cat[name_c], reach_cat[reach_c], dt.toString(formatter), value, name_c};
+			rec.setValues(vals);
+			
+			
+			table_encoder.addValue(rec);
+			dt = dt.plusMinutes(120);
+			
+		}
+		
+
+//		for(Encoder enco : table_encoder.getEncoder_map().values()) {
+//			
+//			System.out.println(enco.getClass());
+//			if(enco instanceof RealEncoder) {
+//				System.out.println(((RealEncoder)enco).getValues().size());
+//			}
+//		}
+		
+		table_encoder.fit_dynamic();
+		
+		System.out.println("After fit dynamic");
+		
+		AnyRecord an = new AnyRecord();
+		an.setValues(new Object[] {name_cat[0], reach_cat[0], dt.toString(formatter), 2f, name_cat[0]});
+		
+		int[] enc1 = table_encoder.transform(an);
+		
+		for(int i = 0; i < enc1.length; i++) {
+			System.out.print(enc1[i] + " ");
+		} 
+		System.out.println("");
+		
+		ArrayList<RecordDecodeResult> newresults = table_encoder.decode(enc1);
+		
+		for(int i = 0; i < newresults.size(); i++) {
+			System.out.println(newresults.get(i));
+		}
+		
 	}
 
 
@@ -713,29 +812,31 @@ public class RecordEncoder<V>  {
 	 * @param any
 	 * @return
 	 */
-	private int[] transform_any_map_record(AnyRecord any) {
+	private int[] transform_any_map_record(AnyRecord values) {
 		
 		int[] encoded = null;
 		
-		for(int i = 0; i < any.getField_names().length; i++) {
+		for(int i = 0; i < anyRecord.getField_names().length; i++) {
 			
-			Encoder encode = encoder_map.get(any.getField_names()[i]);
+			Encoder encode = encoder_map.get(anyRecord.getField_names()[i]);
 			
 			if(encode != null) {
 				
-				if(any.getType()[i] == Type.TIME && encode instanceof TimeEncoder) {
-					
-					int[] bits = ((TimeEncoder)encode).transform(new Temporal((String)any.getValues()[i]));
+				if(anyRecord.getType()[i] == Type.TIME && encode instanceof TimeEncoder) {
+
+					Temporal temp = new Temporal((String)values.getValues()[i]);
+					int[] bits = ((TimeEncoder)encode).transform(temp);
 					encoded = ArrayUtils.addAll(encoded, bits);	
 				}
-				else if(any.getType()[i] == Type.REAL && encode instanceof Number) {
+				else if(anyRecord.getType()[i] == Type.REAL && encode instanceof RealEncoder) {
 					
-					Float value = (Float)any.getValues()[i];
+					System.out.println(values.getValues()[i]);
+					Float value = (Float)values.getValues()[i];
 					int[] bits = ((RealEncoder)encode).transform(value);
 					encoded = ArrayUtils.addAll(encoded, bits);
 				}
-				else if(any.getType()[i] == Type.CATEGORY) {
-					int[] bits = ((CategoricalEncoder)encode).transform(any.getValues()[i].toString());
+				else if(anyRecord.getType()[i] == Type.CATEGORY) {
+					int[] bits = ((CategoricalEncoder)encode).transform(values.getValues()[i].toString());
 					encoded = ArrayUtils.addAll(encoded, bits);
 				}
 			}			
@@ -806,7 +907,24 @@ public class RecordEncoder<V>  {
 	public Type[] getField_types() {
 		return field_types;
 	}
+	public Map<String, Encoder> getEncoder_map() {
+		return encoder_map;
+	}
 
+
+	public void setEncoder_map(Map<String, Encoder> encoder_map) {
+		this.encoder_map = encoder_map;
+	}
+
+
+	public AnyRecord getAnyRecord() {
+		return anyRecord;
+	}
+
+
+	public void setAnyRecord(AnyRecord anyRecord) {
+		this.anyRecord = anyRecord;
+	}
 
 
 	

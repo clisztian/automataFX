@@ -1,10 +1,13 @@
 package graphics;
 
 import java.text.DecimalFormat;
+import java.util.Map;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -56,8 +59,14 @@ public class SexyHistogramPlot {
 	private LinearGradient gradient;
 	private Background back;
 
+	/**
+	 * Contains reference to data in table
+	 */
+	private ObservableList<Map> underyling_data;
 	
-	
+
+
+
 	private final String contextSyle = ".root {\n" + 
 			"  -fx-background-color: rgb(35,25,25,.8); \n" + 
 			"  -fx-padding: 3;\n" + 
@@ -101,7 +110,9 @@ public class SexyHistogramPlot {
 		
 		xAxis = new NumberAxis();
 		xAxis.setLabel("Value");
-
+		xAxis.setForceZeroInRange(false);
+		
+		
 		yAxis = new NumberAxis();
 		yAxis.setLabel("Frequency");
 
@@ -124,7 +135,7 @@ public class SexyHistogramPlot {
 		
 		sexy_area_scene.getStylesheets().add(getClass().getClassLoader().getResource("css/TransactionChart.css").toExternalForm());
 		sexy_area_stage = new Stage();
-		sexy_area_stage.setTitle("SexyHistogram");
+		sexy_area_stage.setTitle("Real Features Histogram");
 		sexy_area_stage.setScene(sexy_area_scene);
 		
 		sexy_area_chart.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() { 
@@ -153,7 +164,7 @@ public class SexyHistogramPlot {
     	computeHistogram(stats);
     	
     	XYChart.Series<Number, Number> series1 = new XYChart.Series<Number, Number>();
-        series1.setName(name + " distribution");
+        series1.setName(name);
         
         series1.getData().add(new XYChart.Data<Number, Number>(buckets[0] - Double.MIN_VALUE, 0));
         for(int k = 0; k < resolution; k++) {     
@@ -162,6 +173,7 @@ public class SexyHistogramPlot {
         series1.getData().add(new XYChart.Data<Number, Number>(buckets[buckets.length - 1] + Double.MIN_VALUE, 0));
                  
         sexy_area_chart.getData().addAll(series1);
+        
         
 	}
 	
@@ -174,6 +186,42 @@ public class SexyHistogramPlot {
 			sexy_area_chart.getData().remove(sexy_area_chart.getData().size() - 1);
 		}		
 	}
+	
+	
+	/**
+	 * Given a field name from the features, grab all values from table that are
+	 * EQUAL to the value 
+	 * 
+	 * Uses the latest real feature histogram 
+	 * 
+	 * @param field_name feature_name (most often a category)
+	 * @param value the conditional value
+	 */
+	public void conditionalDataExtractEquals(String field_name, String value) {
+		
+		if(sexy_area_chart.getData().size() > 0) {
+			
+			int size = sexy_area_chart.getData().size();
+			
+			String target_feature_name = sexy_area_chart.getData().get(size-1).getName();
+			
+			DescriptiveStatistics columnData = new DescriptiveStatistics();
+			
+			for (Map item : underyling_data) {
+				
+				if(item.get(field_name).toString().equals(value) && NumberUtils.isCreatable(item.get(target_feature_name).toString())) {
+					Float myval = (Float)item.get(target_feature_name);
+					columnData.addValue(myval);
+				}
+			}
+			
+			plot(columnData, target_feature_name + " | " + value);
+					
+		}
+		
+		
+	}
+	
 	
 	
 	private void computeHistogram(DescriptiveStatistics stats) {
@@ -211,7 +259,10 @@ public class SexyHistogramPlot {
         }    
     }   
 	
-    
+
+	public void setUnderyling_data(ObservableList<Map> underyling_data) {
+		this.underyling_data = underyling_data;
+	}
 	
     
 	public int getResolution() {

@@ -19,7 +19,8 @@ public class TestCSVTableView extends Application {
 	@Override
 	public void start(Stage arg0) throws Exception {
 		
-		CSVTableView mytable = new CSVTableView("data/breast-cancer.csv");
+		CSVTableView mytable = new CSVTableView();
+		mytable.autoResizeColumns();
 		
 		RadialGradient gradient = new RadialGradient(0, 0, 0.5, 0.25, 0.45, true, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.rgb(2, 58, 87)),

@@ -1,9 +1,14 @@
 package graphics;
 
 import java.util.ArrayList;
+import java.util.Map;
+
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import javafx.animation.Animation;
 import javafx.animation.RotateTransition;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
@@ -42,7 +47,8 @@ public class ClauseScatterPane {
 	private double[] maxs;
 	private Color color_polarity1, color_polarity2;
 	
-	
+	private ArrayList<Sphere> sphere_list;
+	private ArrayList<PointLight> pointlight_list;
 	
     public ClauseScatterPane() {
 		
@@ -86,12 +92,17 @@ public class ClauseScatterPane {
 		
 	    pre_colors = new Color[] {Color.CORNFLOWERBLUE, Color.AQUA, Color.DARKMAGENTA, Color.VIOLET, Color.TOMATO, Color.DARKSALMON, Color.SPRINGGREEN, Color.STEELBLUE, Color.TAN, Color.SADDLEBROWN};
 	    
+	    sphere_list = new ArrayList<Sphere>();
+	    pointlight_list = new ArrayList<PointLight>();
+	    
 	}
     
     
     public void computeScatterPlot(float[][] vals, int[] labels) {
     	
     	grid.getChildren().clear();
+    	sphere_list.clear();
+    	pointlight_list.clear();
     	
     	mins = new double[3];		
 		maxs = new double[3];
@@ -146,13 +157,53 @@ public class ClauseScatterPane {
             pointlight.setTranslateX(xloc); 
             pointlight.setLayoutY(yloc); 
             
+            sphere_list.add(sphere);
+            pointlight_list.add(pointlight);
             
-            grid.getChildren().addAll(sphere,pointlight);
         }
+		grid.getChildren().addAll(sphere_list); 
+		grid.getChildren().addAll(pointlight_list); 
+    }
+    
+    
+    public void enlightenBalls(ObservableList<Map> underlying_data, String target_feature_name, String value) {
     	
+		if(sphere_list.size() > 0 && underlying_data.size() == sphere_list.size()) {
+			
+			int sphere_count = 0;
+			for (Map item :underlying_data) {
+				
+				if(item.get(target_feature_name).toString().equals(value)) {
+					
+					PhongMaterial mat = new PhongMaterial();
+		            mat.setDiffuseColor(Color.MAGENTA);
+		            mat.setSpecularColor(Color.WHITE);
+					
+					sphere_list.get(sphere_count).setMaterial(mat);
+					pointlight_list.get(sphere_count).setColor(Color.MAGENTA);
+				}
+				sphere_count++;
+			}						
+		}		
+	}
+    
+    public void delightenBalls() {
     	
+    	for(Sphere sphere : sphere_list) {
+    		
+    		PhongMaterial mat = new PhongMaterial();
+            mat.setDiffuseColor(pre_colors[0]);
+            mat.setSpecularColor(Color.WHITE);
+            sphere.setMaterial(mat);
+    		
+    	}
+    	
+    	for(PointLight light : pointlight_list) {
+    		light.setColor(pre_colors[0]);
+    	}
     	
     }
+    	
     
     
 	public void computeClauseScatterPlot(MultivariateConvolutionalAutomatonMachine machine) {

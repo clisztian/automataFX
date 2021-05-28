@@ -1,5 +1,6 @@
 package records;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -8,6 +9,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
+
 
 /**
  * An extension of a generic table column that has a 
@@ -48,7 +50,9 @@ public class RecordColumn extends TableColumn<Map, Object> {
 	    
 	}
 	
-
+	private Type column_type;
+	private HashMap<String, Integer> category_map;
+	
 	private String name;
 	private int which_type = 1;
 	private String meta;
@@ -97,7 +101,7 @@ public class RecordColumn extends TableColumn<Map, Object> {
 	public void setMeta(String meta) {
 		this.meta = meta;
 	}
-	private Type column_type;
+
 	
 	public int getWhich_type() {
 		return which_type;
@@ -117,8 +121,15 @@ public class RecordColumn extends TableColumn<Map, Object> {
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	public void setCategory_map(HashMap<String, Integer> category_map) {
+		this.category_map = category_map;
+		
+	}
 	
-	 
+	public HashMap<String, Integer> getCategory_map() {
+		return category_map;
+	}
 	
 	
 }
