@@ -1,5 +1,7 @@
 package records;
 
+import java.util.Map;
+
 import records.RecordColumn.Type;
 
 /**
@@ -17,6 +19,9 @@ public class AnyRecord {
 	
 	private String[] meta_names = null;	
 	private Integer label = null;
+
+
+	private Map<String, Object> map;
 	
 	public AnyRecord() {
 		field_names = null;
@@ -90,5 +95,13 @@ public class AnyRecord {
 
 	public void setMeta_names(String[] meta_names) {
 		this.meta_names = meta_names;
+	}
+
+	public void setMap(Map<String, Object> map) {
+		this.map=map;
+	}
+	
+	public Map<String, Object> getMap() {
+		return map;
 	}
 }

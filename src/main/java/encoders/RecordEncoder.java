@@ -3,6 +3,7 @@ package encoders;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class RecordEncoder<V>  {
 	/**
 	 * Encoder map for AnyRecord from RecordTable
 	 */
-	private Map<String, Encoder> encoder_map;
+	private LinkedHashMap<String, Encoder> encoder_map;
 
 
 	private AnyRecord anyRecord;
@@ -232,7 +233,7 @@ public class RecordEncoder<V>  {
 		if(record.getType() != null) {
 		
 			this.anyRecord = record;
-			encoder_map = new HashMap<String, Encoder>();
+			encoder_map = new LinkedHashMap<String, Encoder>();
 			
 			field_types = record.getType();
 			field_names = record.getField_names();
@@ -830,7 +831,6 @@ public class RecordEncoder<V>  {
 				}
 				else if(anyRecord.getType()[i] == Type.REAL && encode instanceof RealEncoder) {
 					
-					System.out.println(values.getValues()[i]);
 					Float value = (Float)values.getValues()[i];
 					int[] bits = ((RealEncoder)encode).transform(value);
 					encoded = ArrayUtils.addAll(encoded, bits);
@@ -907,12 +907,12 @@ public class RecordEncoder<V>  {
 	public Type[] getField_types() {
 		return field_types;
 	}
-	public Map<String, Encoder> getEncoder_map() {
+	public LinkedHashMap<String, Encoder> getEncoder_map() {
 		return encoder_map;
 	}
 
 
-	public void setEncoder_map(Map<String, Encoder> encoder_map) {
+	public void setEncoder_map(LinkedHashMap<String, Encoder> encoder_map) {
 		this.encoder_map = encoder_map;
 	}
 

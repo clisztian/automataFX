@@ -173,6 +173,7 @@ public class ClauseScatterPane {
 			int sphere_count = 0;
 			for (Map item :underlying_data) {
 				
+				
 				if(item.get(target_feature_name).toString().equals(value)) {
 					
 					PhongMaterial mat = new PhongMaterial();

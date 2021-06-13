@@ -1,7 +1,10 @@
 package output;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
 import encoders.Encoder;
 import encoders.RealEncoder;
+import records.RecordColumn;
 
 /**
  * The counterpart to the real encoder is the real label
@@ -11,9 +14,14 @@ import encoders.RealEncoder;
 public class RealLabel implements OutputLabel<Float> {
 
 	private RealEncoder encoder;
+
+
 	private int target_resolution;
 	private float target_min;
 	private float target_max;
+	
+	private DescriptiveStatistics stats;
+	private RecordColumn recordColumn;
 	
 	public RealLabel(int nbits, float min, float max) {
 		
@@ -45,6 +53,47 @@ public class RealLabel implements OutputLabel<Float> {
 		return ((Integer)val) / (float)(target_resolution - 1) * (target_max - target_min) + target_min;
 	}
 
+	public DescriptiveStatistics getStats() {
+		return stats;
+	}
+
+	public void setStats(DescriptiveStatistics stats) {
+		this.stats = stats;
+	}
+
+
+	public void setRecordColumn(RecordColumn recordColumn) {
+		this.recordColumn = recordColumn;
+		
+	}
+	
+	public RecordColumn getRecordColumn() {
+		return recordColumn;
+	}
+	
+	public int getTarget_resolution() {
+		return target_resolution;
+	}
+
+	public void setTarget_resolution(int target_resolution) {
+		this.target_resolution = target_resolution;
+	}
+
+	public float getTarget_min() {
+		return target_min;
+	}
+
+	public void setTarget_min(float target_min) {
+		this.target_min = target_min;
+	}
+
+	public float getTarget_max() {
+		return target_max;
+	}
+
+	public void setTarget_max(float target_max) {
+		this.target_max = target_max;
+	}
 	
 
 }

@@ -1,9 +1,9 @@
 /controls/
-/css/
-/records/
-/data/
+/images/
 /graphics/
-/examples/
+/records/
+/css/
 /utils/
-/fonts/
-/automataFX/
+/output/
+/tsetlin/
+/encoders/

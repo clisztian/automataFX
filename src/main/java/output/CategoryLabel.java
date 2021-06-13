@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import encoders.Encoder;
+import records.RecordColumn;
 
 /**
  * Labeling system for categories in the form of strings.
@@ -17,6 +18,16 @@ public class CategoryLabel implements OutputLabel<String>{
 	private int class_count;
 	private int number_of_classes;
 	private HashMap<String, Integer> label_encoder;
+	private RecordColumn recordColumn;
+	
+
+
+	public CategoryLabel(HashMap<String, Integer> label_encoder) {
+		
+		this.label_encoder = label_encoder;
+		this.setNumber_of_classes(label_encoder.size());
+		class_count = 0;
+	}
 	
 	public CategoryLabel(int number_of_classes) {
 		
@@ -76,6 +87,18 @@ public class CategoryLabel implements OutputLabel<String>{
 	        }
 	    }
 	    return null;
+	}
+
+	public void setRecordColumn(RecordColumn recordColumn) {		
+		this.recordColumn = recordColumn;
+	}
+	
+	public RecordColumn getRecordColumn() {
+		return recordColumn;
+	}
+	
+	public HashMap<String, Integer> getLabel_encoder() {
+		return label_encoder;
 	}
 	
 }

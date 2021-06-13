@@ -10,6 +10,7 @@ public class TestAutomatonPanel extends Application {
 	public void start(Stage arg0) throws Exception {
 		
 		AutomatonPanel panel = new AutomatonPanel();
+		panel.buildEmbeddingPanel();
 		panel.buildSliders();
 		
 		

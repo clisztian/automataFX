@@ -308,6 +308,7 @@
  ******************************************************************************/
 .combo-box-popup > .list-view {
     -fx-background-color: -fx-outer-border, -fx-control-inner-background;
+    -fx-text-fill: rgb(177, 235, 252);
 }
 /*******************************************************************************
  *                                                                             *
@@ -437,9 +438,14 @@
 }
 
 
-.button1 {
-	-fx-background-color : #EAEDED;
-	-fx-text-fill : #000000;
+.button {
+	-fx-border-color: rgb(255, 227, 250);
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-effect: dropshadow( gaussian , rgb(210, 83, 200) , 10 , .2 , 0, 0 );
+	-fx-background-color : black;
+	-fx-text-fill : rgb(177, 235, 252);
 }
 
 
@@ -515,6 +521,30 @@
      -fx-background-color: black;
      -fx-effect: dropshadow( gaussian , rgb(210, 83, 200) , 25 , .4 , 0, 0 );
 }
+
+
+
+.combo-box,
+.choice-box {
+    -fx-font-size: 14px;
+    -fx-prompt-text-fill: rgb(177, 235, 252);
+    -fx-text-fill: rgb(177, 235, 252);
+    -fx-background-color: none;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: rgb(177, 235, 252);
+    -fx-padding: 0 0 3 -8;
+}
+
+.combo-box .list-cell:filled:selected .text,
+.choice-box .list-cell:filled:selected .text {
+    -fx-fill: rgb(177, 235, 252);
+}
+
+.combo-box .arrow,
+.choice-box .arrow {
+    -fx-background-color: #4d4d4d;   
+}
+
 
 .text-field {
    -fx-font-family: "monospaced";

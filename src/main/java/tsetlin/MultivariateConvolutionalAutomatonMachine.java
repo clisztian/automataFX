@@ -189,7 +189,6 @@ public class MultivariateConvolutionalAutomatonMachine {
 				for(int k = 0; k < X[i].length; k++) {
 					System.out.print(Integer.toUnsignedLong(X[i][k]) + " ");
 				}
-				System.out.println(y[i]);
 				this.update(X[i], y[i]);
 			}
 		}

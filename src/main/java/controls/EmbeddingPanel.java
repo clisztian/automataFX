@@ -1,6 +1,7 @@
 package controls;
 
 import java.io.InputStream;
+import java.text.DecimalFormat;
 import java.util.Map;
 
 import com.jfoenix.controls.JFXSlider;
@@ -12,10 +13,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.Glow;
 import javafx.scene.layout.GridPane;
@@ -35,8 +33,8 @@ public class EmbeddingPanel {
 
     private Stage controller_stage;
     private StackPane controller;
-    private ComboBox<String> metric_box;
 
+	private ComboBox<String> metric_box;
     private Umap umap;
 
     private DataPair pair;
@@ -47,7 +45,12 @@ public class EmbeddingPanel {
     private TextField neibor_text;
     private TextField min_dist_text;
     
-    /**
+    private GridPane input_grid;
+    
+    private DecimalFormat df = new DecimalFormat("0.00");
+
+
+	/**
      * ObservationalList of the full records
      */
     private ObservableList<Map> underlying_data;
@@ -58,12 +61,14 @@ public class EmbeddingPanel {
     	
     	neibor_slider = new JFXSlider(5, 50, 5);    	
     	min_dist_slider = new JFXSlider(1, 5, 1);
-
+    	neibor_slider.setPrefWidth(250);
+    	min_dist_slider.setPrefWidth(250);
+    	
+    	
     	Font bgFont = null;
 		InputStream fontStream = getClass().getClassLoader().getResourceAsStream("fonts/static/Exo-Medium.ttf");
 		if (fontStream != null) {
-            bgFont = Font.loadFont(fontStream, 14);	 
-            System.out.println("FoundFont");
+            bgFont = Font.loadFont(fontStream, 16);	 
 		}
 		else {
 			bgFont = Font.font("Cambria", 14);
@@ -116,7 +121,12 @@ public class EmbeddingPanel {
     		    		"sokalmichener",
     		    		"yule"
     		    );
+    	
+    	options.stream().forEach(e -> e.toUpperCase());
     	metric_box = new ComboBox<String>(options);
+    	metric_box.getSelectionModel().select(0);
+    	metric_box.setEffect(new Glow(1.0));
+    	
     	
     	metric_box.setOnAction((event) -> {
     	    
@@ -126,36 +136,34 @@ public class EmbeddingPanel {
     	});
 
 
-    	neibor_text = new TextField();
+    	neibor_text = new TextField("5");
     	neibor_text.setPrefWidth(100);
     	neibor_slider.valueProperty().addListener(new ChangeListener<Number>() {
             public void changed(ObservableValue<? extends Number> ov,
                 Number old_val, Number new_val) {
-                    System.out.println(new_val.intValue());
                     umap.setNumberNearestNeighbours(new_val.intValue());
                     neibor_text.setText("" + new_val.intValue());
                     replot();
             }
         });
-    	
 
-    	min_dist_text = new TextField();
+    	min_dist_text = new TextField(".1");
     	min_dist_text.setPrefWidth(100);
     	min_dist_slider.valueProperty().addListener(new ChangeListener<Number>() {
             public void changed(ObservableValue<? extends Number> ov,
                     Number old_val, Number new_val) {
                         
             			umap.setMinDist(.1f*new_val.floatValue());
-            			min_dist_text.setText("" + .1*new_val.doubleValue());
+            			min_dist_text.setText("" + df.format(.1f*new_val.floatValue()));
                         replot();
                 }
         });
 
     	
     	
-    	GridPane input_grid = new GridPane();
-    	input_grid.setHgap(15);
-        input_grid.setVgap(15);
+    	input_grid = new GridPane();
+    	input_grid.setHgap(30);
+        input_grid.setVgap(30);
         
         input_grid.add(neiibor_label, 0, 0);
         input_grid.add(neibor_slider, 1, 0);
@@ -171,17 +179,17 @@ public class EmbeddingPanel {
 
         
     	
-        controller = new StackPane();
-        controller.getChildren().add(input_grid);
-        
-
-        controller_stage = new Stage();
-        controller_stage.setTitle("UMAP Embedding Controller");
-        Scene controller_scene = new Scene(controller);
-        controller_scene.getStylesheets().add("css/WhiteOnBlack.css");
-        controller_stage.setScene(controller_scene);
-		
-        controller_stage.show(); 
+//        controller = new StackPane();
+//        controller.getChildren().add(input_grid);
+//        
+//
+//        controller_stage = new Stage();
+//        controller_stage.setTitle("UMAP Embedding Controller");
+//        Scene controller_scene = new Scene(controller);
+//        controller_scene.getStylesheets().add("css/WhiteOnBlack.css");
+//        controller_stage.setScene(controller_scene);
+//		
+//        controller_stage.show(); 
     }
 
 	public void buildClauseScatterPane() {
@@ -216,6 +224,7 @@ public class EmbeddingPanel {
     	
     }
 	
+    
     
 	public void createMap(DataPair pair, ObservableList<Map> items) {
 		
@@ -254,5 +263,12 @@ public class EmbeddingPanel {
 		}		
 	}
 	
+    public GridPane getInput_grid() {
+		return input_grid;
+	}
+
+	public void setInput_grid(GridPane input_grid) {
+		this.input_grid = input_grid;
+	}
     
 }

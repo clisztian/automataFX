@@ -861,9 +861,7 @@ public class AutomataNode {
         
         for(int i = 0; i < n; i++) {
         	if(clause_index[i]%2 == 0) {
-        		System.out.println(clause_index[i]);
         		top_clauses[i] = outputClause(clause_index[i]);
-        		System.out.println(top_clauses[i].toString());
         	}  	
         }
         

@@ -159,6 +159,57 @@ public class MultiAutomataLearning<V> {
 		rng = new Random();
 	}
 	
+	
+	/**
+	 * Multivariate approach for nClasses specifically for AnyRecord
+	 * @param dim_y
+	 * @param patch_dim_y
+	 * @param dim_x
+	 * @param record
+	 * @param nClauses
+	 * @param threshold
+	 * @param max_specificity
+	 * @param nClasses
+	 * @param hours
+	 * @param day_of_month
+	 * @param month_of_year
+	 * @param week_of_year
+	 * @param drop_clause_p
+	 * @param datetime_format
+	 */
+	public MultiAutomataLearning(int dim_y, int patch_dim_y, int dim_x, AnyRecord record, int nClauses, int threshold,  float max_specificity, int nClasses, 
+			boolean hours, boolean day_of_month, boolean month_of_year, boolean week_of_year, float drop_clause_p, String datetime_format) {
+		
+		this.dim_x = dim_x;
+		this.dim_y = dim_y;
+		this.patch_dim_y = patch_dim_y;
+		this.drop_clause_p = drop_clause_p;
+		
+		evolution = new Evolutionize(patch_dim_y, dim_y);		
+		
+		evolution.initiate(record, datetime_format, dim_x, hours, day_of_month, month_of_year, week_of_year);
+		
+		
+		evolution.initiateConvolutionEncoder();
+		automaton = new MultivariateConvolutionalAutomatonMachine(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, drop_clause_p); 	
+		
+		n_global_features = evolution.getEncoder().getEncoder_map().size();
+		
+		n_real_features = 0;
+		n_categorical_features= 0;
+		n_time_features = 0;
+		
+		for(int i = 0; i < n_global_features; i++) {
+			
+			if(evolution.getEncoder().getEncode_maps()[i] instanceof RealEncoder) n_real_features++;
+			else if(evolution.getEncoder().getEncode_maps()[i] instanceof TimeEncoder) n_time_features++;
+			else if(evolution.getEncoder().getEncode_maps()[i] instanceof CategoricalEncoder) n_categorical_features++;	
+		}
+		rng = new Random();
+	}
+	
+	
+	
 	/**
 	 * Applies a new drop_claus configuration during training for all classes
 	 */
