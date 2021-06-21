@@ -61,6 +61,9 @@ public class AutomataNode {
 
 	private ArrayList<Integer> regression_clauses;
 
+
+	private int[][] clause_feature_strength;
+
 	/**
 	 * Instantiates a general convolutional automata machine
 	 * with an encoder, threshold, and other parameters
@@ -110,6 +113,8 @@ public class AutomataNode {
 		feedback_to_la = new int[la_chunks];
 		feedback_to_clauses = new int[clause_chunks];
 		clause_weights = new int[nClauses];
+		clause_feature_strength = new int[nClauses][2*nFeatures];
+		
 		output_one_patches = new int[number_of_patches];
 		clause_patch = new int[nClauses];
 		clause_patch_coverage = new float[nClauses];
@@ -243,11 +248,13 @@ public class AutomataNode {
 				
 				positive_polarity_votes += clause_weights[j] * ((clause_output[clause_chunk] & (1 << clause_pos)) != 0 ? 1 : 0);
 				pos_sum_weights += clause_weights[j];
+								
 			} else {
 				class_sum -= clause_weights[j] * ((clause_output[clause_chunk] & (1 << clause_pos)) != 0 ? 1 : 0);
 				
 				negative_polarity_votes += clause_weights[j] * ((clause_output[clause_chunk] & (1 << clause_pos)) != 0 ? 1 : 0);
 				neg_sum_weights += clause_weights[j];
+				
 			}	
 		}
 
@@ -745,6 +752,26 @@ public class AutomataNode {
 		return feature_strength;
 	}
 	
+	
+	
+	/**
+	 * Computes the feature strength per clause for organizing clause patterns
+	 */
+	public void computeWeightedFeatureStrengthByClause() {
+		
+		clause_feature_strength = new int[nClauses][2*nFeatures];
+		
+		for(int j = 0; j < nClauses; j++) {
+			
+			for(int k = 0; k < nFeatures; k++) {
+				clause_feature_strength[j][k] += tm_action(j, k);
+				clause_feature_strength[j][2*k] += tm_action(j, nFeatures + k);
+			}			
+		}
+	}
+	
+	
+	
 	/**
 	 * Computes for a given position in time
 	 * @param index from 0 < index < dim_y - patch_dim_y
@@ -993,5 +1020,21 @@ public class AutomataNode {
 		return clause_patch_coverage;
 	}
 	
+	public int getnClauses() {
+		return nClauses;
+	}
+
+	public void setnClauses(int nClauses) {
+		this.nClauses = nClauses;
+	}
+	
+
+	public int[][] getClause_feature_strength() {
+		return clause_feature_strength;
+	}
+
+	public void setClause_feature_strength(int[][] clause_feature_strength) {
+		this.clause_feature_strength = clause_feature_strength;
+	}
 	
 }

@@ -483,6 +483,10 @@
 .default-color2.chart-line-symbol { -fx-background-color: transparent, transparent; }
 
 
+.default-color0.chart-bar {-fx-bar-fill: rgb(46, 255, 91); }
+.default-color1.chart-bar {-fx-bar-fill: rgb(255, 46, 91); }
+
+
 .table-row-cell:highlighted {
     -fx-background-color: brown;
     -fx-background-insets: 0, 1, 2;

@@ -537,5 +537,21 @@ public class MultivariateConvolutionalAutomatonMachine {
 	}
 	
 	
+	/**
+	 * Compute the clause importance for every class
+	 * 
+	 * Usually recomputed computed after every Epoch completion
+	 */
+	public void computeClauseImportance() {
+		
+		for (int i = 0; i < nClasses; i++) {	
+			tm[i].computeWeightedFeatureStrengthByClause();
+		}
+		
+	}
+	
+	public int[][] getClauseImportance(int my_class) {
+		return tm[my_class].getClause_feature_strength();
+	}
 	
 }

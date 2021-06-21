@@ -132,6 +132,10 @@ public class AutomatonPanel {
 	private int n_feature_bits = 10;
 
 	private BorderPane insamp;
+
+
+
+	private Font bgFont;
 	
 	
 
@@ -359,7 +363,7 @@ public class AutomatonPanel {
 //		patch_size_slider.setPrefHeight(50);
 //		dim_y_slider.setPrefHeight(50);
 		
-		Font bgFont = null;
+		bgFont = null;
 		InputStream fontStream = getClass().getClassLoader().getResourceAsStream("fonts/static/Exo-Medium.ttf");
 		if (fontStream != null) {
             bgFont = Font.loadFont(fontStream, 16);	 
@@ -762,6 +766,16 @@ public class AutomatonPanel {
 
 	public Gauge getIn_sample_percent_gauge() {
 		return in_sample_percent_gauge;
+	}
+	
+	public Font getBgFont() {
+		return bgFont;
+	}
+
+
+
+	public void setBgFont(Font bgFont) {
+		this.bgFont = bgFont;
 	}
 	
 	

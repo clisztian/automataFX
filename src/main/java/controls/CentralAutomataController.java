@@ -7,10 +7,13 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import encoders.RealEncoder;
+import graphics.ClauseClusters;
+import graphics.PredictionPanel;
 import interpretability.Prediction;
 import javafx.animation.Animation;
 import javafx.animation.RotateTransition;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -82,7 +85,10 @@ public class CentralAutomataController extends Application {
 	private boolean real_time;
 	private int n_classes; 
 	
-		
+	private PredictionPanel prediction_panel;
+	private ClauseClusters clause_cluster;
+	private StackPane clause_pane;	
+	private Stage clause_stage;
 	
 	public void buildCentralPane() {
 		
@@ -183,6 +189,22 @@ public class CentralAutomataController extends Application {
 	}
 	
 	
+	public void buildClauseCluster() {
+		
+		clause_cluster = new ClauseClusters();
+		clause_cluster.setFont(automaton_panel.getBgFont());
+		clause_pane = new StackPane();
+		clause_pane.setPrefSize(600, 600);
+		clause_pane.getChildren().add(clause_cluster.getSc());
+		
+		Scene clause_scene = new Scene(clause_pane);
+		clause_scene.getStylesheets().add("css/WhiteOnBlack.css");
+		clause_stage = new Stage();
+		clause_stage.setTitle("Interpretability Clustering");
+		clause_stage.setScene(clause_scene);
+		
+	}
+	
 	
 	
 	/**
@@ -264,8 +286,21 @@ public class CentralAutomataController extends Application {
 					System.out.println(label + " " + out);					
 				}				
 			}	
+			
+			System.out.println("Finished Epoch " + i + ": computing clause importance");
+			automata.get(0).getAutomata().computeClauseImportance();
+			automata.get(0).getAutomata().computeClauseFeatureImportance();
+			
+			clause_cluster.updateClauses(automata.get(0).getAutomata(), 0);
+			
+//			Platform.runLater(() -> {
+//				clause_cluster.updateClauses(automata.get(0).getAutomata(), 0);
+//			});
+
 		}
 				
+		
+		prediction_panel = new PredictionPanel(automata.get(0).getAutomata(), automata.get(0).getOutput(), automaton_panel.getN_bits());
 		
 	}
 
@@ -293,6 +328,13 @@ public class CentralAutomataController extends Application {
 							try {
 								Prediction pred = auto.getAutomata().predict(record);
 								System.out.println(pred.getPred_class());
+
+								if(prediction_panel != null && prediction_panel.isShowing()) {
+									
+									Platform.runLater(() -> {
+										prediction_panel.update(pred);
+									});
+								}
 								
 								float perc =(1f*data_table.getSelectionModel().getSelectedItems().size())/(1f*data_table.getItems().size());
 								automaton_panel.getIn_sample_percent_gauge().setValue(100f*perc);
@@ -380,6 +422,11 @@ public class CentralAutomataController extends Application {
 			/**
 			 * Create machine summary view
 			 */
+			Platform.runLater(() -> {
+				clause_cluster.initiateClauses(automata.get(0).getAutomata().getAutomaton().getNumberClauses(), automata.get(0).getAutomata().getAutomaton().getNumberClasses());
+				clause_stage.show();
+			});
+			
 			
 		}
 
@@ -544,6 +591,7 @@ public class CentralAutomataController extends Application {
 	public void start(Stage arg0) throws Exception {
 		loadFont();
 		buildCentralPane();
+		buildClauseCluster();
 		buildDropBox();
 	}
 	

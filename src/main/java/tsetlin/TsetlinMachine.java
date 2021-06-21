@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
@@ -70,6 +71,10 @@ public class TsetlinMachine<V> {
 	private GlobalTemporalFeatures[] risk_temporal_features;
 	private GlobalCategoricalFeatures[] risk_categorical_features;
 
+
+	private GlobalRealFeatures[][][] clause_global_strength;
+	private int nClasses;
+
 	
 	
 	/**
@@ -96,6 +101,7 @@ public class TsetlinMachine<V> {
 		this.dim_y = dim_y;
 		this.patch_dim_y = patch_dim_y;
 		this.drop_clause_p = drop_clause_p;
+		this.nClasses = nClasses;
 		
 		evolution = new Evolutionize(patch_dim_y, dim_y);		
 		
@@ -500,14 +506,23 @@ public class TsetlinMachine<V> {
 			 }
 		}
 		
+		
+		
+		
+		float[] probs = new float[automaton.getNumberClasses()];
+		for(int i = 0; i < probs.length; i++) {
+			probs[i] = (float)automaton.getMachine(i).getClass_probability();
+		}
+		
 		prediction.setCategorical_features(categorical_features)
-				  .setLag_features(lag_features)
-				  .setReal_features(real_features)
-				  .setTemporal_features(risk_temporal_features)
-				  .setRisk_categorical_features(risk_categorical_features)
-				  .setRisk_lag_features(risk_lag_features)
-				  .setRisk_real_features(risk_real_features)
-				  .setRisk_temporal_features(risk_temporal_features);
+		  .setLag_features(lag_features)
+		  .setReal_features(real_features)
+		  .setTemporal_features(risk_temporal_features)
+		  .setRisk_categorical_features(risk_categorical_features)
+		  .setRisk_lag_features(risk_lag_features)
+		  .setRisk_real_features(risk_real_features)
+		  .setRisk_temporal_features(risk_temporal_features)
+		  .setPred_probabilities(probs);;
 		
 	}
 	
@@ -542,6 +557,8 @@ public class TsetlinMachine<V> {
 		int last_zero = 0; int first_zero = neg_cont.length - 1;
 		int first_index = pos_cont.length - 1;
 		int max = -1; 
+		int clause_overlap = 0;
+		int neg_clause_overlap = 0;
 
 		float[] split_values = new float[pos_cont.length];
 		
@@ -563,9 +580,14 @@ public class TsetlinMachine<V> {
 			if(neg_cont[neg_cont.length - 1 - k] == 0 && first_zero == neg_cont.length - 1) {
 				first_zero = k;
 			}
+			
+			if(pos_cont[k] > 0) clause_overlap++;
+			if(neg_cont[k] > 0) neg_clause_overlap++;
 		}
 		//System.out.print(" [" + last_index  + ", " + first_index + "], [ " + first_zero + ", " + last_zero + "]\n");			
         global.setValues(name, pos_mean, neg_mean, pos_cont, neg_cont, new int[] {last_index, first_index}, new int[] {first_zero, last_zero});
+        global.setClauseOverlap(clause_overlap, neg_clause_overlap);
+        
         
         if(encoder != null) {
         	global.setFeature_ranges(encoder.getAll_split_values());	
@@ -696,6 +718,112 @@ public class TsetlinMachine<V> {
 	}
 	
 
+	public void computeClauseImportance() {
+		automaton.computeClauseImportance();
+	}
+	
+
+	public void computeClauseFeatureImportance() {
+		
+				
+		clause_global_strength = new GlobalRealFeatures[automaton.getNumberClasses()][automaton.getNumberClauses()][n_real_features];
+		
+		
+//		List<Integer> list = Arrays.stream(automaton.getClauseImportance(0)[0]).boxed().collect(Collectors.toList());
+//		System.out.println(list);
+		
+		String[] keys = evolution.getEncoder().getEncoder_map().keySet().toArray(new String[0]);
+		int patch_dim_x = dim_x;
+		int n_bit_features = automaton.getNumberFeatures();
+		
+		
+		for(int my_class = 0; my_class < automaton.getNumberClasses(); my_class++) {
+			
+			int[][] local_features = automaton.getClauseImportance(my_class);
+			
+			for(int c = 0; c < automaton.getNumberClauses(); c++) {
+				
+				
+				//int[] temp_structure_pos = Arrays.copyOfRange(local_features[c], 0, dim_y - patch_dim_y);
+				//int[] temp_structure_neg = Arrays.copyOfRange(local_features[c], n_bit_features, n_bit_features + (dim_y - patch_dim_y));
+			
+				int p_x = 0;
+				int patch_pos = 0;
+
+				int n_real_features_count = 0;
+				int start = (dim_y - patch_dim_y) + (dim_x - patch_dim_x);
+				for (int p_y = 0; p_y < patch_dim_y; ++p_y) {
+					 
+					 p_x = 0; n_real_features_count = 0;
+					 for(int feat_dim = 0; feat_dim < n_global_features; feat_dim++) { 
+						
+						 int bit_dim = evolution.getEncoder().getEncoder_map().get(keys[feat_dim]).getBitDimension();
+						 int[] local_pos = new int[bit_dim];
+						 int[] local_neg = new int[bit_dim];
+						 				 
+						 for(int k = 0; k < bit_dim; k++) {
+							 
+						    patch_pos = start + p_y * patch_dim_x + p_x;	
+						    
+							local_pos[k] = local_features[c][patch_pos];
+							local_neg[k] = local_features[c][n_bit_features + patch_pos];	
+												
+						    p_x++;
+						 }
+						 
+						 /**
+						  * If its a real encoder, map it to a global real decoder
+						  */
+
+						 if(evolution.getEncoder().getEncoder_map().get(keys[feat_dim]) instanceof RealEncoder) {
+							 
+							 
+							 GlobalRealFeatures glob_real = decodeRealFeatures(keys[feat_dim], 
+									 (RealEncoder)evolution.getEncoder().getEncoder_map().get(keys[feat_dim]), 
+									 local_pos, local_neg);
+							 
+							 clause_global_strength[my_class][c][n_real_features_count] = glob_real;
+							 
+							 n_real_features_count++;
+						 }
+//						 /**
+//						  * If its a time encoder, map it to a global time decoder
+//						  */
+//						 else if(evolution.getEncoder().getEncoder_map().get(keys[feat_dim]) instanceof TimeEncoder) {
+//							 
+//							 temporal_features[p_y] = decodeTemporalFeatures(keys[feat_dim], 
+//									 (TimeEncoder)evolution.getEncoder().getEncoder_map().get(keys[feat_dim]), local_pos, local_neg);
+//						 }
+//						 /**
+//						  * If its a categorical encoder, map it to a global categorical decoder
+//						  */
+//						 else if(evolution.getEncoder().getEncoder_map().get(keys[feat_dim]) instanceof CategoricalEncoder) {
+//							 
+//							 categorical_features[p_y] = decodeCategoricalFeatures(keys[feat_dim], 
+//									 (CategoricalEncoder)evolution.getEncoder().getEncoder_map().get(keys[feat_dim]), local_pos, local_neg);
+//							 
+//						 }
+					 }
+				}	
+				
+			}
+			
+			
+			
+			
+		}
+		
+
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -804,7 +932,12 @@ public class TsetlinMachine<V> {
 		return risk_categorical_features;
 	}
 
+	public GlobalRealFeatures[][][] getClause_global_strength() {
+		return clause_global_strength;
+	}
 
+
+	
 
 
 	

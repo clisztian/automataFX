@@ -30,6 +30,19 @@ public class RealLabel implements OutputLabel<Float> {
 		this.target_max = max;
 	}
 	
+	public float[] getLabels() {
+		
+		float[] targets = new float[target_resolution];
+		
+		float delta = (target_max - target_min) / (1f*target_resolution );
+		
+		targets[0] = target_min;
+		for(int i = 1; i < target_resolution; i++) {
+			targets[i] = targets[i-1] + delta;
+		}
+		return targets;
+	}
+	
 	@Override
 	public void setLabel(Object obj) {
 		// TODO Auto-generated method stub

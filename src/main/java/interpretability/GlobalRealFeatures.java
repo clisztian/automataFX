@@ -2,6 +2,9 @@ package interpretability;
 
 public class GlobalRealFeatures {
 
+	private int bit_length;
+
+
 	private String feature_name;
 	private BitRanges global_features;
 	private float[] feature_ranges;
@@ -15,6 +18,7 @@ public class GlobalRealFeatures {
 	
 	public void setValues(String name, float strength, float neg_strength, int[] pos_bits, int[] neg_bits, int[] max_range, int[] zero_range) {
 		
+			bit_length = pos_bits.length;
 			global_features.setStrength(strength)
 			   .setNegStrength(neg_strength)
 			   .setPos_bits(pos_bits)
@@ -24,7 +28,21 @@ public class GlobalRealFeatures {
 		
 	}
 		
-	class BitRanges {
+	
+	public int getBit_length() {
+		return bit_length;
+	}
+
+	public void setBit_length(int bit_length) {
+		this.bit_length = bit_length;
+	}
+	
+
+	public void setClauseOverlap(int overlap, int negoverlap) {
+		global_features.setClauseOverlap(overlap, negoverlap);
+	}
+	
+	public class BitRanges {
 		
 		private float strength;
 		private float neg_strength;
@@ -32,6 +50,10 @@ public class GlobalRealFeatures {
 		private int[] neg_bits;
 		private int[] max_range;
 		private int[] zero_range;
+		private int clause_overlap;
+
+
+		private int neg_clause_overlap;
 				
 		
 		public int[] getPos_bits() {
@@ -80,9 +102,34 @@ public class GlobalRealFeatures {
 			this.neg_strength = neg_strength;
 		}
 		
+		public void setClauseOverlap(int overlap, int negoverlap) {
+			this.clause_overlap = overlap;
+			this.neg_clause_overlap = overlap;
+		}
+		
+		public int getClause_overlap() {
+			return clause_overlap;
+		}
+		public void setClause_overlap(int clause_overlap) {
+			this.clause_overlap = clause_overlap;
+		}
+		public int getNeg_clause_overlap() {
+			return neg_clause_overlap;
+		}
+		public void setNeg_clause_overlap(int neg_clause_overlap) {
+			this.neg_clause_overlap = neg_clause_overlap;
+		}
 	}
 
 
+	public int getClauseStrength() {
+		return global_features.clause_overlap;
+	}
+	
+	public int getClauseNegStrength() {
+		return global_features.neg_clause_overlap;
+	}
+	
 	public float getStrength() {
 		return global_features.getStrength();
 	}
