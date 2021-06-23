@@ -167,7 +167,7 @@ public class CentralAutomataController extends Application {
 		
 		VBox vbox = new VBox(10);
 		vbox.setPadding(new Insets(5,5,5,10));
-		vbox.getChildren().addAll(table_pane, central_pane);
+		vbox.getChildren().addAll(automaton_panel.getControl_stack(), table_pane, central_pane);
 		vbox.getStylesheets().add("css/WhiteOnBlack.css");
 		
 		
@@ -200,7 +200,7 @@ public class CentralAutomataController extends Application {
 		Scene clause_scene = new Scene(clause_pane);
 		clause_scene.getStylesheets().add("css/WhiteOnBlack.css");
 		clause_stage = new Stage();
-		clause_stage.setTitle("Interpretability Clustering");
+		clause_stage.setTitle("Clause Map");
 		clause_stage.setScene(clause_scene);
 		
 	}
@@ -332,7 +332,12 @@ public class CentralAutomataController extends Application {
 								if(prediction_panel != null && prediction_panel.isShowing()) {
 									
 									Platform.runLater(() -> {
-										prediction_panel.update(pred);
+										try {
+											prediction_panel.update(pred);
+										} catch (Exception e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
 									});
 								}
 								

@@ -517,22 +517,16 @@ public class AutomatonPanel {
 		control_stack = new StackPane();
 		control_stack.getChildren().add(hbox);
 		
-		Scene control_scene = new Scene(control_stack);
-		control_scene.getStylesheets().add(getClass().getClassLoader().getResource("css/WhiteOnBlack.css").toExternalForm());
-			
-		LinearGradient gradient =new LinearGradient(0, 0, 1, 0, true, CycleMethod.NO_CYCLE, 
-    			new Stop(0, Color.rgb(24, 217, 185)),
-                new Stop(1, Color.rgb(217, 24, 185)) );
-    	
-		Background back = new Background(new BackgroundFill(gradient, CornerRadii.EMPTY, Insets.EMPTY));
-		
-		
-		control_stage = new Stage();
-		control_stage.setScene(control_scene);
+//		Scene control_scene = new Scene(control_stack);
+//		control_scene.getStylesheets().add(getClass().getClassLoader().getResource("css/WhiteOnBlack.css").toExternalForm());
+//			
+//		
+//		control_stage = new Stage();
+//		control_stage.setScene(control_scene);
 		
 		animation.play();
 		
-		control_stage.show();
+//		control_stage.show();
 	}
 	
 	

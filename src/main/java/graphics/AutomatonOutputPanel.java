@@ -116,8 +116,8 @@ public class AutomatonOutputPanel {
 //        mypane.getChildren().get(0).setGraphic(borders[0]);
 		
 		LinearGradient gradient2 =new LinearGradient(0, 0, 1, 0, true, CycleMethod.NO_CYCLE, 
-    			new Stop(0, Color.SLATEGRAY),
-                new Stop(1, Color.SLATEGRAY.brighter().brighter()) );
+    			new Stop(0, Color.SLATEGRAY.darker().darker()),
+                new Stop(1, Color.SLATEGRAY) );
     	
 		Background back = new Background(new BackgroundFill(gradient2, CornerRadii.EMPTY, Insets.EMPTY));
 		

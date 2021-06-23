@@ -133,6 +133,10 @@ public class GlobalRealFeatures {
 	public float getStrength() {
 		return global_features.getStrength();
 	}
+	
+	public float getNegStrength() {
+		return global_features.getNeg_strength();
+	}
 
 	public BitRanges getBitRanges() {
 		return global_features;

@@ -2,6 +2,10 @@ package graphics;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
+import org.apache.commons.lang3.math.NumberUtils;
 
 import eu.hansolo.medusa.Gauge;
 import eu.hansolo.medusa.GaugeBuilder;
@@ -54,7 +58,7 @@ public class PredictionPanel {
 
 	
 	private Gauge probability;	
-	private Tile output_tile;
+
 	private BarChart<String,Number> local_feature_importance;
 	private BarChart<String,Number> class_probability;
 	private AutomatonOutputPanel automata_panel;
@@ -92,25 +96,37 @@ public class PredictionPanel {
 	private DecimalFormat df = new DecimalFormat("0.##");
 	
 	private Stage prediction_stage;
-	private Label output_text;
+
+	
+	private final Comparator<GlobalRealFeatures> compare = new Comparator<GlobalRealFeatures>() {
+        public int compare(GlobalRealFeatures o1, GlobalRealFeatures o2) {
+             return o1.getStrength() + o1.getNegStrength() < o2.getStrength() + o2.getNegStrength() ? -1
+                      : o1.getStrength() + o1.getNegStrength() > o2.getStrength() + o2.getNegStrength() ? 1
+                      : 0;
+        }
+    };
+	private int n_real_features;
+	private Gauge prediction_type;
+	private float[] real_val_outputs;
 	
 	
 	public PredictionPanel(TsetlinMachine<AnyRecord> machine, OutputLabel output, int nbits) {
 		
+		n_real_features = machine.getN_real_features();
+		any_output = output;
 		
 		buildBarChar();
-		
-		this.any_output = output;
+			
 		
 		if(output instanceof RealLabel) {
 			
 			RealLabel out = (RealLabel)output;
 			
-			float[] vals = out.getLabels();
+			real_val_outputs = out.getLabels();
 			
-			output_labels = new String[vals.length];
+			output_labels = new String[real_val_outputs.length];
 			
-			for(int i = 0; i < output_labels.length; i++) output_labels[i] = df.format(vals[i]);
+			for(int i = 0; i < output_labels.length; i++) output_labels[i] = df.format(real_val_outputs[i]);
 		}
 		else if(output instanceof CategoryLabel) {
 			
@@ -152,7 +168,12 @@ public class PredictionPanel {
 			else risky_features_updates.setText("PREDICTIVE MODE");
 			
 			Platform.runLater(() -> {
-				updateFeatureChart();
+				try {
+					updateFeatureChart();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			});
 			
 		});
@@ -200,32 +221,40 @@ public class PredictionPanel {
 		        .animated(true)
 		        .build();
 		
-		output_text = new Label("Prediction");
-		StackPane output_pane = new StackPane();
-		output_pane.setPrefSize(200, 200);
-		output_pane.getChildren().add(output_text);
+		prediction_type = GaugeBuilder.create()
+		        .skinType(SkinType.DIGITAL)
+		        .foregroundBaseColor(Color.rgb(177, 235, 252))
+		        .barColor(Color.rgb(177, 235, 252))
+		        .title("PREDICTION")
+		        .unit("")
+		        .maxValue(100.0)
+		        .animated(true)
+		        .build();
 		
-		output_tile = TileBuilder.create().skinType(eu.hansolo.tilesfx.Tile.SkinType.CHARACTER)
-						        .prefSize(200, 200)
-						        .title("Character Tile")
-						        .titleAlignment(TextAlignment.CENTER)
-						        .description("G")
-						        .build();
+		if(any_output instanceof RealLabel) {
+			prediction_type.setMinValue(real_val_outputs[0]);
+			prediction_type.setMaxValue(real_val_outputs[real_val_outputs.length  - 1]);			
+		}
+		if(any_output instanceof CategoryLabel) {
+			prediction_type.setMinValue(0);
+			prediction_type.setMaxValue(output_labels.length);			
+		}
 		
+				
 		
 		
 		GridPane top_pane =  new GridPane();
 		top_pane.setHgap(30);
 		top_pane.setVgap(30);
 		top_pane.add(probability, 0, 0);
-		top_pane.add(output_pane, 1, 0);
+		top_pane.add(prediction_type, 1, 0);
 		top_pane.add(embed, 2, 0);
 		top_pane.add(class_probability, 3, 0);
 		
 		VBox box = new VBox(); 		
 		box.setPadding(new Insets(40));
 		box.getChildren().addAll(top_pane, my_scroll);
-		
+		box.setPrefSize(1400, 1000);
 		
 		Scene pred_scene = new Scene(box);
 		pred_scene.getStylesheets().add(getClass().getClassLoader().getResource("css/WhiteOnBlack.css").toExternalForm());
@@ -244,8 +273,9 @@ public class PredictionPanel {
 	/**
 	 * Update all the prediction components
 	 * @param pred
+	 * @throws Exception 
 	 */
-	public void update(Prediction pred) {
+	public void update(Prediction pred) throws Exception {
 		
 		this.pred = pred;
 		
@@ -254,12 +284,16 @@ public class PredictionPanel {
 		String val = "";
 		if(any_output instanceof CategoryLabel) {
 			val = ((CategoryLabel)any_output).decode(pred.getPred_class());
+			prediction_type.setTitle(val);
+			if(NumberUtils.isCreatable(val)) {
+				prediction_type.setValue(Double.parseDouble(val));
+			}
 		}
 		else if(any_output instanceof RealLabel) {
-			val = any_output.decode(pred.getPred_class()) + "";
+			prediction_type.setValue(((RealLabel)any_output).decode(pred.getPred_class()));
+			
 		}
 		
-		output_text.setText(val);
 		
 		
 		updateFeatureChart();
@@ -286,7 +320,7 @@ public class PredictionPanel {
 		
 		local_feature_importance = new BarChart<String, Number>(xAxis, yAxis);
 		local_feature_importance.setBackground(back);
-		local_feature_importance.setPrefSize(1200, 500);
+		local_feature_importance.setPrefSize(n_real_features*70, 500);
 		local_feature_importance.setAnimated(true); 
 		local_feature_importance.setBarGap(2);
 		local_feature_importance.setCategoryGap(15);
@@ -349,8 +383,11 @@ public class PredictionPanel {
 	
 	
 	
-	public void updateFeatureChart() {
+	public void updateFeatureChart() throws Exception {
 		
+		if(pred == null) {
+			throw new Exception("No prediction found yet");
+		}
 		
 		GlobalRealFeatures[][] feats = plot_risky_features ? pred.getRisk_real_features() : pred.getReal_features();
 	
@@ -365,13 +402,20 @@ public class PredictionPanel {
 			neg_points = new ArrayList<XYChart.Data<String, Number>>();
 			
 
+			ArrayList<GlobalRealFeatures> real = new ArrayList<GlobalRealFeatures>();
 			for(int i = 0; i < feats[0].length; i++) {
+				real.add(feats[0][i]);
+			}
+			Collections.sort(real, compare.reversed());
+			
+			
+			for(int i = 0; i < real.size(); i++) {
 				
-				float pos_val = feats[0][i].getBitRanges().getStrength();
-				float neg_val = feats[0][i].getBitRanges().getNeg_strength();
+				float pos_val = real.get(i).getBitRanges().getStrength();
+				float neg_val = real.get(i).getBitRanges().getNeg_strength();
 				
-				pos_points.add(new XYChart.Data<String, Number>(feats[0][i].getFeatureName(), pos_val));
-				neg_points.add(new XYChart.Data<String, Number>(feats[0][i].getFeatureName(), neg_val));
+				pos_points.add(new XYChart.Data<String, Number>(real.get(i).getFeatureName(), pos_val));
+				neg_points.add(new XYChart.Data<String, Number>(real.get(i).getFeatureName(), neg_val));
 				
 			}
 			pos_features.getData().addAll(pos_points);
@@ -386,13 +430,22 @@ public class PredictionPanel {
 		 */
 		else if(feats[0].length == pos_points.size()) {
 			
+			ArrayList<GlobalRealFeatures> real = new ArrayList<GlobalRealFeatures>();
 			for(int i = 0; i < feats[0].length; i++) {
+				real.add(feats[0][i]);
+			}
+			Collections.sort(real, compare.reversed());
+			
+			for(int i = 0; i < pos_features.getData().size(); i++) {
 				
-				float pos_val = feats[0][i].getBitRanges().getStrength();
-				float neg_val = feats[0][i].getBitRanges().getNeg_strength();
+				float pos_val = real.get(i).getBitRanges().getStrength();
+				float neg_val = real.get(i).getBitRanges().getNeg_strength();
 				
-				pos_points.get(i).setYValue(pos_val);
-				neg_points.get(i).setYValue(neg_val);
+				pos_features.getData().get(i).setXValue(real.get(i).getFeatureName());
+				neg_features.getData().get(i).setXValue(real.get(i).getFeatureName());
+				
+				pos_features.getData().get(i).setYValue(pos_val);
+				neg_features.getData().get(i).setYValue(neg_val);
 				
 			}
 			

@@ -56,6 +56,8 @@ public class TsetlinMachine<V> {
 	private int dim_x;
 	
 	private int n_global_features;
+
+
 	private int n_real_features;
 	private int n_categorical_features;
 	private int n_time_features;
@@ -937,7 +939,15 @@ public class TsetlinMachine<V> {
 	}
 
 
-	
+	public int getN_real_features() {
+		return n_real_features;
+	}
+
+
+
+	public void setN_real_features(int n_real_features) {
+		this.n_real_features = n_real_features;
+	}
 
 
 	
