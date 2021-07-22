@@ -74,6 +74,7 @@ public class TsetlinMachine<V> {
 	private GlobalCategoricalFeatures[] risk_categorical_features;
 
 
+	private GlobalRealFeatures[][] global_strength_real_features;
 	private GlobalRealFeatures[][][] clause_global_strength;
 	private int nClasses;
 
@@ -257,6 +258,15 @@ public class TsetlinMachine<V> {
 		
 		return prediction;
 			
+	}
+	
+	
+	public int fast_predict(V val) throws IllegalArgumentException, IllegalAccessException {
+		
+		evolution.add(val);
+		int[] pred = automaton.predict_interpret(evolution.get_last_sample());	
+		
+		return pred[pred.length - 1];
 	}
 	
 	
@@ -724,7 +734,91 @@ public class TsetlinMachine<V> {
 		automaton.computeClauseImportance();
 	}
 	
+	/**
+	 * Computes for all classes the global feature importance 
+	 */
+	public void computeFeatureImportance() {
+			
+		
+		String[] keys = evolution.getEncoder().getEncoder_map().keySet().toArray(new String[0]);
+		int patch_dim_x = dim_x;
+		int n_bit_features = automaton.getNumberFeatures();
+		
+		global_strength_real_features = new GlobalRealFeatures[automaton.getNumberClasses()][n_real_features];
+		
+		for(int my_class = 0; my_class < automaton.getNumberClasses(); my_class++) {
+			
+			int[] global_features = automaton.getWeightedGlobalFeatureImportance(my_class);
+			
+			int p_x = 0;
+			int patch_pos = 0;
 
+			int n_real_features_count = 0;
+			int start = (dim_y - patch_dim_y) + (dim_x - patch_dim_x);
+			for (int p_y = 0; p_y < patch_dim_y; ++p_y) {
+				 
+				 p_x = 0; n_real_features_count = 0;
+				 for(int feat_dim = 0; feat_dim < n_global_features; feat_dim++) { 
+					
+					 int bit_dim = evolution.getEncoder().getEncoder_map().get(keys[feat_dim]).getBitDimension();
+					 int[] local_pos = new int[bit_dim];
+					 int[] local_neg = new int[bit_dim];
+					 				 
+					 for(int k = 0; k < bit_dim; k++) {
+						 
+					    patch_pos = start + p_y * patch_dim_x + p_x;	
+					    
+						local_pos[k] = global_features[patch_pos];
+						local_neg[k] = global_features[n_bit_features + patch_pos];	
+											
+					    p_x++;
+					 }
+					 
+					 /**
+					  * If its a real encoder, map it to a global real decoder
+					  */
+
+					 if(evolution.getEncoder().getEncoder_map().get(keys[feat_dim]) instanceof RealEncoder) {
+						 
+						 
+						 GlobalRealFeatures glob_real = decodeRealFeatures(keys[feat_dim], 
+								 (RealEncoder)evolution.getEncoder().getEncoder_map().get(keys[feat_dim]), 
+								 local_pos, local_neg);
+						 
+						 global_strength_real_features[my_class][n_real_features_count] = glob_real;
+						 
+						 n_real_features_count++;
+					 }
+//					 /**
+//					  * If its a time encoder, map it to a global time decoder
+//					  */
+//					 else if(evolution.getEncoder().getEncoder_map().get(keys[feat_dim]) instanceof TimeEncoder) {
+//						 
+//						 temporal_features[p_y] = decodeTemporalFeatures(keys[feat_dim], 
+//								 (TimeEncoder)evolution.getEncoder().getEncoder_map().get(keys[feat_dim]), local_pos, local_neg);
+//					 }
+//					 /**
+//					  * If its a categorical encoder, map it to a global categorical decoder
+//					  */
+//					 else if(evolution.getEncoder().getEncoder_map().get(keys[feat_dim]) instanceof CategoricalEncoder) {
+//						 
+//						 categorical_features[p_y] = decodeCategoricalFeatures(keys[feat_dim], 
+//								 (CategoricalEncoder)evolution.getEncoder().getEncoder_map().get(keys[feat_dim]), local_pos, local_neg);
+//						 
+//					 }
+				 }
+			}	
+			
+		}
+			
+		
+		
+		
+		
+		
+	}
+
+	
 	public void computeClauseFeatureImportance() {
 		
 				
@@ -950,7 +1044,15 @@ public class TsetlinMachine<V> {
 	}
 
 
-	
+	public GlobalRealFeatures[][] getGlobal_strength_real_features() {
+		return global_strength_real_features;
+	}
+
+
+
+	public void setGlobal_strength_real_features(GlobalRealFeatures[][] global_strength_real_features) {
+		this.global_strength_real_features = global_strength_real_features;
+	}
 
 	
 	

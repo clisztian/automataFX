@@ -43,13 +43,13 @@ public class AutomatonOutputPanel {
 
 	private DropShadow shadow;
 	private DropShadow out_shadow;
-	private Glow glow;
+
+	
 	
 	
 	public AutomatonOutputPanel(int n) {
 		
 
-		glow = new Glow(1.0);
 		shadow = new DropShadow();
 		shadow.setColor(Color.BLACK);
 		shadow.setOffsetX(5);
@@ -91,6 +91,7 @@ public class AutomatonOutputPanel {
 			my_circles[i].setStroke(Color.LIGHTSLATEGRAY);
 			my_circles[i].setStrokeWidth(1);
 			my_circles[i].setFill(Color.rgb(10, 14, 11));
+
 			
 			output_group[i] = new Group();
 			output_group[i].getChildren().addAll(my_region[i], my_circles[i]);
@@ -134,11 +135,11 @@ public class AutomatonOutputPanel {
 			
 			if(isLit[i]) {
 				my_circles[i].setFill(Color.rgb(177, 235, 252));
-				//my_circles[i].setEffect(glow);
+				my_circles[i].setEffect(new DropShadow(BlurType.GAUSSIAN, Color.rgb(177, 235, 252), 10, 10, 0, 0));
 			}
 			else {
 				my_circles[i].setFill(Color.rgb(20, 14, 31));
-				//my_circles[i].setEffect(null);
+				my_circles[i].setEffect(null);
 			}
 		}
 	}
@@ -150,16 +151,19 @@ public class AutomatonOutputPanel {
 			
 			if(pos[i] == 1 && neg[i] == 1) {
 				my_circles[i].setFill(Color.CYAN);
-				//my_circles[i].setEffect(glow);
+				my_circles[i].setEffect(new DropShadow(BlurType.GAUSSIAN, Color.CYAN, 15, .4, 0, 0));
 			}
 			else if(pos[i] == 1) {
 				my_circles[i].setFill(Color.rgb(177, 235, 252));
+				my_circles[i].setEffect(new DropShadow(BlurType.GAUSSIAN, Color.rgb(177, 235, 252), 15, .4, 0, 0));
 			}
 			else if(neg[i] == 1) {
 				my_circles[i].setFill(Color.rgb(210, 83, 200));
+				my_circles[i].setEffect(new DropShadow(BlurType.GAUSSIAN, Color.rgb(210, 83, 200), 15, .4, 0, 0));
 			}
 			else {
 				my_circles[i].setFill(Color.rgb(20, 14, 31));
+				my_circles[i].setEffect(null);
 			}
 			
 			Tooltip mytooltip = new Tooltip();

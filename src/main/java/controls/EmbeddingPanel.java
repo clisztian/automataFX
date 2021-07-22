@@ -25,6 +25,7 @@ import javafx.stage.Stage;
 import tagbio.umap.Umap;
 import tagbio.umap.metric.Metric;
 import utils.DataPair;
+import utils.Styles;
 
 public class EmbeddingPanel {
 
@@ -84,9 +85,9 @@ public class EmbeddingPanel {
     	metric_label.setFont(bgFont);
 
 		
-    	neiibor_label.setFill(Color.rgb(177, 235, 252));
-    	min_dist_label.setFill(Color.rgb(177, 235, 252));
-    	metric_label.setFill(Color.rgb(177, 235, 252));
+    	neiibor_label.setFill(Styles.base_color);
+    	min_dist_label.setFill(Styles.base_color);
+    	metric_label.setFill(Styles.base_color);
 
 				
 		neiibor_label.setEffect(new Glow(.5));

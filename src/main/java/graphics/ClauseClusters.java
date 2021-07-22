@@ -54,8 +54,10 @@ public class ClauseClusters {
     
 	
 	private String[] my_colors = new String[] {
-			"66, 236, 245", 
-			"245, 66, 158", 
+			"177, 235, 252",
+			"245, 64, 57",
+			"77, 240, 55",  
+			"55, 197, 240" 
 	};
 	private DropShadow shadow;
 	private Glow glow;
@@ -120,7 +122,7 @@ public class ClauseClusters {
     	
     	for(int k = 0; k < n_classes; k++) {    		
     		for(int i = 0; i < n_clauses; i++) { 		
-        		data[k].add(new XYChart.Data<Number, Number>(rng.nextInt(30), rng.nextInt(30)));
+        		data[k].add(new XYChart.Data<Number, Number>(rng.nextInt(30), 0));
         	}  		
     		pin[k].getData().addAll(data[k]);
     	}

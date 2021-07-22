@@ -2,37 +2,34 @@ package records;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
 
 import com.csvreader.CsvReader;
 
 import controls.EmbeddingPanel;
-import dataio.CSVInterface;
-import examples.TableCellTextColorExample.TableData;
 import graphics.SexyCategoryChart;
 import graphics.SexyHistogramPlot;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ContextMenu;
@@ -405,6 +402,21 @@ public class CSVTableView extends TableView<Map> {
 	public ArrayList<AnyRecord> selectedRecords() {
 		
 		ObservableList<Map> mymap = getSelectionModel().getSelectedItems();
+		ArrayList<AnyRecord> record_list = new ArrayList<AnyRecord>();
+			
+		if(mymap.size() > 0) {
+			for(Map map : mymap) record_list.add(mapToRecord(map));
+		}		
+		return record_list;
+	}
+	
+	/**
+	 * Returns the current non selected rows into records
+	 * @return
+	 */
+	public ArrayList<AnyRecord> getNonSelectedRecords() {
+		
+		Collection<Map> mymap = CollectionUtils.subtract(getItems(), getSelectionModel().getSelectedItems());
 		ArrayList<AnyRecord> record_list = new ArrayList<AnyRecord>();
 		
 		if(mymap.size() > 0) {

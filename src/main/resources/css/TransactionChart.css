@@ -396,8 +396,8 @@
 .table-view {
     -fx-base: #1d1d1d;
     -fx-control-inner-background: #1d1d1d;
-/*    -fx-background-color: linear-gradient(to top,  rgb(45, 0, 45), rgb(2, 40, 50));*/
-    -fx-background-color: rgb(13, 10, 14);
+    -fx-background-color: transparent;
+/*    -fx-background-color: radial-gradient(radius 100%, rgb(245, 54, 67), derive(black, -30%), derive(black, 30%));*/
     -fx-table-cell-border-color: transparent;
     -fx-table-header-border-color: transparent;
     -fx-padding: 5;

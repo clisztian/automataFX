@@ -89,8 +89,9 @@ public class AutomatonPanel {
 	private TextField dim_y_text;
 	
 	private RadialGradient gradient1;
-	private Color start_color = Color.rgb(177, 235, 252);
-	private Color end_color = Color.rgb(210, 83, 200);
+	private Color base_color = Color.rgb(64, 200, 227);
+	private Color start_color = base_color;
+	private Color end_color = Color.rgb(245, 64, 57);
 
 
 
@@ -138,6 +139,7 @@ public class AutomatonPanel {
 	private Font bgFont;
 	
 	
+	
 
 
 	//private Tile fireSmokeTile;
@@ -179,8 +181,8 @@ public class AutomatonPanel {
 		
 
 		StackPane firepane = new StackPane();
-		firepane.setBackground(new Background(new BackgroundFill(Color.rgb(177, 235, 252), new CornerRadii(100), Insets.EMPTY)));
-		firepane.setStyle("-fx-effect: dropshadow( gaussian , rgb(177, 235, 252) , 25 , .4 , 0, 0 )");
+		firepane.setBackground(new Background(new BackgroundFill(base_color, new CornerRadii(100), Insets.EMPTY)));
+		firepane.setStyle("-fx-effect: dropshadow( gaussian , rgb(64, 200, 227) , 25 , .4 , 0, 0 )");
 		
 		
 		final Transition animation = new Transition() {
@@ -403,15 +405,15 @@ public class AutomatonPanel {
 		patch_label.setFont(bgFont);
 		epochs_label.setFont(bgFont);
 		
-		n_clauses_label.setFill(Color.rgb(177, 235, 252));
-		thresh_label.setFill(Color.rgb(177, 235, 252));
-		spec_label.setFill(Color.rgb(177, 235, 252));
-		dropout_label.setFill(Color.rgb(177, 235, 252));
+		n_clauses_label.setFill(base_color);
+		thresh_label.setFill(base_color);
+		spec_label.setFill(base_color);
+		dropout_label.setFill(base_color);
 		
-		n_feature_bits_label.setFill(Color.rgb(177, 235, 252));
-		dim_y_label.setFill(Color.rgb(177, 235, 252));
-		patch_label.setFill(Color.rgb(177, 235, 252));
-		epochs_label.setFill(Color.rgb(177, 235, 252));
+		n_feature_bits_label.setFill(base_color);
+		dim_y_label.setFill(base_color);
+		patch_label.setFill(base_color);
+		epochs_label.setFill(base_color);
 		
 		n_feature_bits_label.setEffect(new Glow(.5));
 		dim_y_label.setEffect(new Glow(.5));
@@ -488,8 +490,8 @@ public class AutomatonPanel {
                 "-fx-border-width: 1;" +
                 "-fx-border-insets: 5;" +
                 "-fx-border-radius: 5;" +
-                "-fx-border-color: rgb(177, 235, 252);" +
-                "-fx-border-effect: dropshadow( gaussian , rgb(177, 235, 252) , 25 , .4 , 0, 0 )");
+                "-fx-border-color: rgb(64, 200, 227);" +
+                "-fx-border-effect: dropshadow( gaussian , rgb(64, 200, 227) , 25 , .4 , 0, 0 )");
 		
 		
 		
@@ -497,8 +499,8 @@ public class AutomatonPanel {
 		
 		in_sample_percent_gauge = GaugeBuilder.create()
 	        .skinType(SkinType.DIGITAL)
-	        .foregroundBaseColor(Color.rgb(177, 235, 252))
-	        .barColor(Color.rgb(177, 235, 252))
+	        .foregroundBaseColor(base_color)
+	        .barColor(base_color)
 	        .title("IN-SAMPLE")
 	        .unit("%")
 	        .maxValue(100.0)

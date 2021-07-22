@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import encoders.RealEncoder;
 import graphics.ClauseClusters;
+import graphics.GlobalFeatureImportanceChart;
+import graphics.OutputStatsChart;
 import graphics.PredictionPanel;
 import interpretability.Prediction;
 import javafx.animation.Animation;
@@ -18,12 +21,14 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.PointLight;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -50,6 +55,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import output.CategoryLabel;
 import output.OutputLabel;
+import output.OutputStats;
 import output.RealLabel;
 import records.AnyRecord;
 import records.CSVTableView;
@@ -85,10 +91,18 @@ public class CentralAutomataController extends Application {
 	private boolean real_time;
 	private int n_classes; 
 	
+	private GlobalFeatureImportanceChart feature_importance;
+	private OutputStatsChart output_chart;
 	private PredictionPanel prediction_panel;
 	private ClauseClusters clause_cluster;
 	private StackPane clause_pane;	
 	private Stage clause_stage;
+	
+	private Thread learnThread;
+	private Task<Void> learnTask;
+
+	private ProgressBar bar;
+	
 	
 	public void buildCentralPane() {
 		
@@ -99,7 +113,7 @@ public class CentralAutomataController extends Application {
 		automaton_panel.getLearn_button().setOnMouseReleased(e -> {
 			automaton_panel.getLearn_button().setStyle(Styles.HOVERED_BUTTON_STYLE);
 			try {
-				learnMachine();
+				learnMachineTask();
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -203,6 +217,8 @@ public class CentralAutomataController extends Application {
 		clause_stage.setTitle("Clause Map");
 		clause_stage.setScene(clause_scene);
 		
+		feature_importance = new GlobalFeatureImportanceChart();
+		output_chart = new OutputStatsChart();
 	}
 	
 	
@@ -230,8 +246,11 @@ public class CentralAutomataController extends Application {
 	 * 
 	 * 
 	 */
+		
 	
-	private void learnMachine() throws Exception {
+	@SuppressWarnings("unused")
+	private void learnMachineTask() throws Exception {
+		
 		
 		if(data_table == null) {
 			throw new Exception("Need data table first");
@@ -246,6 +265,7 @@ public class CentralAutomataController extends Application {
 		}
 		
 		ArrayList<AnyRecord> records = data_table.selectedRecords();
+		ArrayList<AnyRecord> test_set = data_table.getNonSelectedRecords();
 		
 		for(AutomataMap<AnyRecord> map : automata) {			
 			map.getAutomata().add_fit(records);
@@ -255,55 +275,83 @@ public class CentralAutomataController extends Application {
 		int n_epochs = automaton_panel.getN_epochs();
 		
 		System.out.println("Here: Spin off progress if batch otherwise, update visualization cues");
-		for(int i = 0; i < n_epochs; i++) {
-			
-			System.out.println("Epoch " + i);
-			
-			
-			if(automaton_panel.getDropout_rate() > 0) {
+		
+		
+
+		learnTask = new Task<Void>() {
+	    	
+
+			@Override
+			protected Void call() throws Exception {
 				
-				System.out.println("Applying drop clause");
-				for(AutomataMap<AnyRecord> auto : automata) {
-					auto.getAutomata().drop_clauses();
-				}
-			}
-			
-			for(AnyRecord record : records) {
+				final int max = records.size()*n_epochs;
+				int count = 0;
 				
-				for(AutomataMap<AnyRecord> auto : automata) {
+				for(int i = 0; i < n_epochs; i++) {
 					
-					int label = 0;
-					if(auto.getOutput() instanceof RealLabel) {					
-						label = (int)((RealLabel)auto.getOutput()).getLabel((float)record.getMap().get(((RealLabel)auto.getOutput()).getRecordColumn().getName()));
+					System.out.println("Epoch " + i);
+					
+					
+					System.out.println("Applying drop clause");
+					for(AutomataMap<AnyRecord> auto : automata) {
+						auto.getAutomata().drop_clauses();
+						auto.getClearResults();
 					}
-					else if(auto.getOutput() instanceof CategoryLabel) {
+					
+					for(AnyRecord record : records) {
 						
-						String name = ((CategoryLabel)auto.getOutput()).getRecordColumn().getName();							
-						label = (int)((CategoryLabel)auto.getOutput()).getLabel(record.getMap().get(name).toString());
-					}
-					int out = auto.getAutomata().update(record, label);		
+						for(AutomataMap<AnyRecord> auto : automata) {
+							
+							int label = 0;
+							if(auto.getOutput() instanceof RealLabel) {					
+								label = (int)((RealLabel)auto.getOutput()).getLabel((float)record.getMap().get(((RealLabel)auto.getOutput()).getRecordColumn().getName()));
+							}
+							else if(auto.getOutput() instanceof CategoryLabel) {
+								
+								String name = ((CategoryLabel)auto.getOutput()).getRecordColumn().getName();							
+								label = (int)((CategoryLabel)auto.getOutput()).getLabel(record.getMap().get(name).toString());
+							}
+							int out = auto.getAutomata().update(record, label);		
+											
+						}		
+						updateProgress(count, max);
+						count++;
+					}	
 					
-					System.out.println(label + " " + out);					
-				}				
-			}	
-			
-			System.out.println("Finished Epoch " + i + ": computing clause importance");
-			automata.get(0).getAutomata().computeClauseImportance();
-			automata.get(0).getAutomata().computeClauseFeatureImportance();
-			
-			clause_cluster.updateClauses(automata.get(0).getAutomata(), 0);
-			
-//			Platform.runLater(() -> {
-//				clause_cluster.updateClauses(automata.get(0).getAutomata(), 0);
-//			});
-
-		}
+					System.out.println("Finished Epoch " + i + ": computing clause importance");
+					automata.get(0).getAutomata().computeClauseImportance();
+					automata.get(0).getAutomata().computeClauseFeatureImportance();
+					
+					clause_cluster.updateClauses(automata.get(0).getAutomata(), 0);
+					
+					evaluateModel(test_set);
+				}
 				
+				
+				
+				
+				return null;
+			}
+		};
 		
-		prediction_panel = new PredictionPanel(automata.get(0).getAutomata(), automata.get(0).getOutput(), automaton_panel.getN_bits());
+		/**
+		 * Launch the prediction panel for the given automata
+		 */
+		Platform.runLater(() -> {
+			prediction_panel = new PredictionPanel(automata.get(0).getAutomata(), automata.get(0).getOutput(), automaton_panel.getN_bits());
+		});
 		
-	}
+		bar = new ProgressBar();
+		bar.progressProperty().bind(learnTask.progressProperty());
+		learnThread = new Thread(learnTask, "learn-thread");
+		learnThread.setDaemon(true);
+		learnThread.start();
+		
 
+	}
+	
+	
+	
 	
 	public void addPredictModelListener() {
 		
@@ -316,8 +364,36 @@ public class CentralAutomataController extends Application {
 					
 					if(data_table.getSelectionModel().getSelectedItems().size() > 0) {
 						
+						ArrayList<AnyRecord> records = data_table.selectedRecords();
+						
 						float perc =(1f*data_table.getSelectionModel().getSelectedItems().size())/(1f*data_table.getItems().size());
 						automaton_panel.getIn_sample_percent_gauge().setValue(100f*perc);
+						
+						if(automata != null && automata.size() > 0) {
+						
+							for(AutomataMap<AnyRecord> auto : automata) auto.getClearResults();
+			
+							for(AnyRecord record : records) {
+								
+								for(AutomataMap<AnyRecord> auto : automata) {
+									
+									int label = 0;
+									if(auto.getOutput() instanceof RealLabel) {					
+										label = (int)((RealLabel)auto.getOutput()).getLabel((float)record.getMap().get(((RealLabel)auto.getOutput()).getRecordColumn().getName()));
+									}
+									else if(auto.getOutput() instanceof CategoryLabel) {
+										
+										String name = ((CategoryLabel)auto.getOutput()).getRecordColumn().getName();							
+										label = (int)((CategoryLabel)auto.getOutput()).getLabel(record.getMap().get(name).toString());
+									}
+									OutputStats stat = auto.getIn_sample_results().get(label);
+									stat.true_output_inc();	
+									stat.setLabel_class(label);				
+								}	
+							}
+							
+							plotResults(automata.get(0).getIn_sample_results());
+						}	
 					}
 					
 					
@@ -351,6 +427,8 @@ public class CentralAutomataController extends Application {
 						}
 					}
 				}
+
+
 	    });
 		
 		
@@ -374,6 +452,8 @@ public class CentralAutomataController extends Application {
 	 * 
 	 * 5) Creates visualization and summary tools for the model and the clause canvas'
 	 * 
+	 * 6) Create the test set
+	 * 
 	 */
 	private void buildMachine() {
 		
@@ -383,6 +463,7 @@ public class CentralAutomataController extends Application {
 			
 			data_table.commitRecord();		
 			data_table.buildAutomataSystem();
+			
 			
 			ArrayList<OutputLabel> outputs = data_table.getOutput_labels();
 			
@@ -402,6 +483,8 @@ public class CentralAutomataController extends Application {
 					n_classes = automaton_panel.getThreshold();
 					((RealLabel)out).setTarget_resolution(n_classes);
 				}
+				
+				
 				
 				TsetlinMachine<AnyRecord> automaton = new TsetlinMachine<AnyRecord>(
 						automaton_panel.getDim_y(), 
@@ -430,13 +513,106 @@ public class CentralAutomataController extends Application {
 			Platform.runLater(() -> {
 				clause_cluster.initiateClauses(automata.get(0).getAutomata().getAutomaton().getNumberClauses(), automata.get(0).getAutomata().getAutomaton().getNumberClasses());
 				clause_stage.show();
+
+				feature_importance.initialize(automata.get(0).getAutomata().getN_real_features());
+				feature_importance.show();
+				
+				output_chart.initialize(n_classes);
+				output_chart.show();
 			});
 			
 			
 		}
+		
+	}
+
+	
+	/**
+	 * For categorical labels, will test the accuracy for each class individually
+	 * For real labels, will use L2 distanct
+	 * 
+	 * 
+	 * 
+	 * @param test_set
+	 * @throws IllegalAccessException 
+	 * @throws IllegalArgumentException 
+	 */
+	public void evaluateModel(ArrayList<AnyRecord> test_set) throws IllegalArgumentException, IllegalAccessException {
+		
+		
+		
+		for(AnyRecord record : test_set) {
+			
+			for(AutomataMap<AnyRecord> auto : automata) {
+				
+				int label = 0;
+				if(auto.getOutput() instanceof RealLabel) {					
+					label = (int)((RealLabel)auto.getOutput()).getLabel((float)record.getMap().get(((RealLabel)auto.getOutput()).getRecordColumn().getName()));
+				}
+				else if(auto.getOutput() instanceof CategoryLabel) {
+					
+					String name = ((CategoryLabel)auto.getOutput()).getRecordColumn().getName();							
+					label = (int)((CategoryLabel)auto.getOutput()).getLabel(record.getMap().get(name).toString());
+				}
+				int out = auto.getAutomata().fast_predict(record);	
+					
+				OutputStats stat = auto.getIn_sample_results().get(label);
+				stat.true_output_inc();
+				if(label == out) {
+					stat.pred_output_correct_inc();
+				}
+				else {
+					auto.getIn_sample_results().get(out).false_positive_inc();
+				}
+				
+			}				
+		}
+		automata.get(0).printInSampleResults();
+		automata.get(0).getAutomata().computeFeatureImportance();
+		
+		Platform.runLater(() -> {			
+			feature_importance.computeChart(automata.get(0).getAutomata().getGlobal_strength_real_features(), 0);
+		});
+		
+		int n_real = automata.get(0).getIn_sample_results().size();
+		int[] labels = new int[n_real];
+		int[][] vals = new int[n_real][3];
+		
+		for(int i = 0; i < n_real; i++) {
+			
+			OutputStats stats = automata.get(0).getIn_sample_results().get(i);
+			int discrepency = stats.getTrue_output() - stats.getPred_output_correct();
+			
+			labels[i] = stats.getLabel_class();
+			vals[i][0] = discrepency;
+			vals[i][1] = stats.getPred_output_correct();
+			vals[i][2] = stats.getFalse_positive();
+		}
+		
+				
+		Platform.runLater(() -> {
+				
+			output_chart.computeChart_(labels, vals);
+		});
+		
+	}
+	
+	
+	/**
+	 * Plots the results of the output distribution
+	 * @param in_sample_results
+	 */
+	private void plotResults(HashMap<Integer, OutputStats> in_sample_results) {
+		
+
+		Platform.runLater(() -> {
+			
+			output_chart.computeChart(in_sample_results);
+		});
 
 		
 	}
+	
 	
 
 	private void loadFont() {
@@ -510,9 +686,10 @@ public class CentralAutomataController extends Application {
 	
 	private void addData(File file) throws IOException {
 		
-		rt.stop();
+		
 		data_table.createTable(file);
-		central_pane.getChildren().set(0, data_table);
+		data_table.setOpacity(.85);
+		central_pane.getChildren().add(data_table);
 	
 		GridPane.setHgrow(data_table, Priority.ALWAYS);
 		GridPane.setVgrow(data_table, Priority.ALWAYS);
@@ -559,9 +736,9 @@ public class CentralAutomataController extends Application {
 		central_pane = new StackPane();
 		central_pane.setPrefSize(1400, 800);
 		
-		RadialGradient gradient = new RadialGradient(0, 0, 0.5, 0.50, 0.50, true, CycleMethod.NO_CYCLE,
-                new Stop(0, Color.BLACK),
-                new Stop(1,Color.rgb(47, 60, 66)));
+		RadialGradient gradient = new RadialGradient(0, 0, .5, .25, .7, true, CycleMethod.NO_CYCLE,
+                new Stop(0, Color.rgb(5, 96, 128)),
+                new Stop(1,Color.BLACK));
 		
 		central_pane.setBackground(new Background(new BackgroundFill(gradient, CornerRadii.EMPTY, Insets.EMPTY)));
 		InputStream logoStream = getClass().getClassLoader().getResourceAsStream("images/dragon.png");

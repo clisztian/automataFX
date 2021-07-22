@@ -254,12 +254,13 @@ public class PredictionPanel {
 		VBox box = new VBox(); 		
 		box.setPadding(new Insets(40));
 		box.getChildren().addAll(top_pane, my_scroll);
-		box.setPrefSize(1400, 1000);
+		box.setPrefSize(1000, 800);
 		
 		Scene pred_scene = new Scene(box);
 		pred_scene.getStylesheets().add(getClass().getClassLoader().getResource("css/WhiteOnBlack.css").toExternalForm());
 		prediction_stage = new Stage();
 		prediction_stage.setScene(pred_scene);
+		System.out.println("Going to show");
 		prediction_stage.show();
 		
 	}
@@ -391,65 +392,94 @@ public class PredictionPanel {
 		
 		GlobalRealFeatures[][] feats = plot_risky_features ? pred.getRisk_real_features() : pred.getReal_features();
 	
+		clearPlots();
+		
+		pos_points = new ArrayList<XYChart.Data<String, Number>>();
+		neg_points = new ArrayList<XYChart.Data<String, Number>>();
+		local_feature_importance.layout();
+
+		ArrayList<GlobalRealFeatures> real = new ArrayList<GlobalRealFeatures>();
+		for(int i = 0; i < feats[0].length; i++) {
+			real.add(feats[0][i]);
+		}
+		Collections.sort(real, compare.reversed());
+		
+		
+		for(int i = 0; i < real.size(); i++) {
+			
+			float pos_val = real.get(i).getBitRanges().getStrength();
+			float neg_val = real.get(i).getBitRanges().getNeg_strength();
+			
+			pos_points.add(new XYChart.Data<String, Number>(real.get(i).getFeatureName(), pos_val));
+			neg_points.add(new XYChart.Data<String, Number>(real.get(i).getFeatureName(), neg_val));
+			
+		}
+		pos_features.getData().addAll(pos_points);
+		neg_features.getData().addAll(neg_points);
+		
+		local_feature_importance.getData().addAll(pos_features, neg_features);
+		
+		
 		/*
 		 * Initiate and redesign from scratch
 		 */
-		if(pos_points == null || pos_points.size() == 0) {
-				
-			clearPlots();
-			
-			pos_points = new ArrayList<XYChart.Data<String, Number>>();
-			neg_points = new ArrayList<XYChart.Data<String, Number>>();
-			
-
-			ArrayList<GlobalRealFeatures> real = new ArrayList<GlobalRealFeatures>();
-			for(int i = 0; i < feats[0].length; i++) {
-				real.add(feats[0][i]);
-			}
-			Collections.sort(real, compare.reversed());
-			
-			
-			for(int i = 0; i < real.size(); i++) {
-				
-				float pos_val = real.get(i).getBitRanges().getStrength();
-				float neg_val = real.get(i).getBitRanges().getNeg_strength();
-				
-				pos_points.add(new XYChart.Data<String, Number>(real.get(i).getFeatureName(), pos_val));
-				neg_points.add(new XYChart.Data<String, Number>(real.get(i).getFeatureName(), neg_val));
-				
-			}
-			pos_features.getData().addAll(pos_points);
-			neg_features.getData().addAll(neg_points);
-			
-			local_feature_importance.getData().addAll(pos_features, neg_features);
-			
-		}
-		
-		/**
-		 * Aint my first rodeo
-		 */
-		else if(feats[0].length == pos_points.size()) {
-			
-			ArrayList<GlobalRealFeatures> real = new ArrayList<GlobalRealFeatures>();
-			for(int i = 0; i < feats[0].length; i++) {
-				real.add(feats[0][i]);
-			}
-			Collections.sort(real, compare.reversed());
-			
-			for(int i = 0; i < pos_features.getData().size(); i++) {
-				
-				float pos_val = real.get(i).getBitRanges().getStrength();
-				float neg_val = real.get(i).getBitRanges().getNeg_strength();
-				
-				pos_features.getData().get(i).setXValue(real.get(i).getFeatureName());
-				neg_features.getData().get(i).setXValue(real.get(i).getFeatureName());
-				
-				pos_features.getData().get(i).setYValue(pos_val);
-				neg_features.getData().get(i).setYValue(neg_val);
-				
-			}
-			
-		}
+//		if(pos_points == null || pos_points.size() == 0) {
+//				
+//			clearPlots();
+//			
+//			pos_points = new ArrayList<XYChart.Data<String, Number>>();
+//			neg_points = new ArrayList<XYChart.Data<String, Number>>();
+//			local_feature_importance.layout();
+//
+//			ArrayList<GlobalRealFeatures> real = new ArrayList<GlobalRealFeatures>();
+//			for(int i = 0; i < feats[0].length; i++) {
+//				real.add(feats[0][i]);
+//			}
+//			Collections.sort(real, compare.reversed());
+//			
+//			
+//			for(int i = 0; i < real.size(); i++) {
+//				
+//				float pos_val = real.get(i).getBitRanges().getStrength();
+//				float neg_val = real.get(i).getBitRanges().getNeg_strength();
+//				
+//				pos_points.add(new XYChart.Data<String, Number>(real.get(i).getFeatureName(), pos_val));
+//				neg_points.add(new XYChart.Data<String, Number>(real.get(i).getFeatureName(), neg_val));
+//				
+//			}
+//			pos_features.getData().addAll(pos_points);
+//			neg_features.getData().addAll(neg_points);
+//			
+//			local_feature_importance.getData().addAll(pos_features, neg_features);
+//			
+//		}
+//		
+//		/**
+//		 * Aint my first rodeo
+//		 */
+//		else if(feats[0].length == pos_points.size()) {
+//			
+//			ArrayList<GlobalRealFeatures> real = new ArrayList<GlobalRealFeatures>();
+//			for(int i = 0; i < feats[0].length; i++) {
+//				real.add(feats[0][i]);
+//			}
+//			Collections.sort(real, compare.reversed());
+//			local_feature_importance.layout();
+//			
+//			for(int i = 0; i < pos_features.getData().size(); i++) {
+//				
+//				float pos_val = real.get(i).getBitRanges().getStrength();
+//				float neg_val = real.get(i).getBitRanges().getNeg_strength();
+//				
+//				pos_features.getData().get(i).setXValue(real.get(i).getFeatureName());
+//				neg_features.getData().get(i).setXValue(real.get(i).getFeatureName());
+//				
+//				pos_features.getData().get(i).setYValue(pos_val);
+//				neg_features.getData().get(i).setYValue(neg_val);
+//				
+//			}
+//			
+//		}
 		
 		
 	}

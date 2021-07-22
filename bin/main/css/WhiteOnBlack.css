@@ -308,7 +308,7 @@
  ******************************************************************************/
 .combo-box-popup > .list-view {
     -fx-background-color: -fx-outer-border, -fx-control-inner-background;
-    -fx-text-fill: rgb(177, 235, 252);
+    -fx-text-fill: rgb(64, 200, 227);
 }
 /*******************************************************************************
  *                                                                             *
@@ -443,9 +443,9 @@
     -fx-border-width: 1;
     -fx-border-radius: 20;
     -fx-background-radius: 20;
-    -fx-effect: dropshadow( gaussian , rgb(210, 83, 200) , 10 , .2 , 0, 0 );
+    -fx-effect: dropshadow( gaussian , rgb(245, 64, 57) , 10 , .2 , 0, 0 );
 	-fx-background-color : black;
-	-fx-text-fill : rgb(177, 235, 252);
+	-fx-text-fill : rgb(64, 200, 227);
 }
 
 
@@ -483,8 +483,25 @@
 .default-color2.chart-line-symbol { -fx-background-color: transparent, transparent; }
 
 
-.default-color0.chart-bar {-fx-bar-fill: rgb(46, 255, 91); }
-.default-color1.chart-bar {-fx-bar-fill: rgb(255, 46, 91); }
+.default-color0.chart-bar {
+    -fx-border-color: rgba(64, 200, 227, .9);
+    -fx-border-width: 2;
+    -fx-bar-fill: rgba(64, 200, 227, .4);
+    -fx-background-color: rgba(64, 200, 227, .4);
+    -fx-background-insets: 0,1,2;
+    -fx-background-radius: 5 5 0 0, 4 4 0 0, 3 3 0 0;
+    -fx-effect: dropshadow( gaussian , rgb(64, 200, 227) , 25 , .4 , 0, 0 ); 
+}
+
+.default-color1.chart-bar {
+    -fx-border-color: rgba(17, 214, 208, .9);
+    -fx-border-width: 2;
+    -fx-bar-fill: rgba(17, 214, 208, .4);
+    -fx-background-color: rgba(17, 214, 208, .4);
+    -fx-background-insets: 0,1,2;
+    -fx-background-radius: 5 5 0 0, 4 4 0 0, 3 3 0 0;
+    -fx-effect: dropshadow( gaussian , rgb(17, 214, 208) , 25 , .4 , 0, 0 ); 
+}
 
 
 .table-row-cell:highlighted {
@@ -495,7 +512,7 @@
 }
 
 .jfx-slider {
-    -fx-border-color: rgba(177, 235, 252, .7);
+    -fx-border-color: rgba(64, 200, 227, .7);
     -fx-border-width: 1;
     -fx-border-radius: 7;
 }
@@ -505,7 +522,7 @@
 }
 
 .jfx-slider > .colored-track {
-     -fx-background-color: linear-gradient(to right, rgb(177, 235, 252), rgb(217, 24, 185));
+     -fx-background-color: linear-gradient(to right, rgb(64, 200, 227), rgb(245, 64, 57));
 }
 
 .jfx-slider > .animated-thumb {
@@ -523,7 +540,7 @@
      -fx-border-width: 2;
      -fx-border-radius: 20;
      -fx-background-color: black;
-     -fx-effect: dropshadow( gaussian , rgb(210, 83, 200) , 25 , .4 , 0, 0 );
+     -fx-effect: dropshadow( gaussian , rgb(245, 64, 57) , 34 , .7 , 0, 0 );
 }
 
 
@@ -531,17 +548,17 @@
 .combo-box,
 .choice-box {
     -fx-font-size: 14px;
-    -fx-prompt-text-fill: rgb(177, 235, 252);
-    -fx-text-fill: rgb(177, 235, 252);
+    -fx-prompt-text-fill: rgb(64, 200, 227);
+    -fx-text-fill: rgb(64, 200, 227);
     -fx-background-color: none;
     -fx-border-width: 0 0 1 0;
-    -fx-border-color: rgb(177, 235, 252);
+    -fx-border-color: rgb(64, 200, 227);
     -fx-padding: 0 0 3 -8;
 }
 
 .combo-box .list-cell:filled:selected .text,
 .choice-box .list-cell:filled:selected .text {
-    -fx-fill: rgb(177, 235, 252);
+    -fx-fill: rgb(64, 200, 227);
 }
 
 .combo-box .arrow,
@@ -554,10 +571,10 @@
    -fx-font-family: "monospaced";
    -fx-font-size: 14;
    -fx-padding: 2,2,2,2;
-   -fx-border-color: rgba(177, 235, 252, .7);
+   -fx-border-color: rgba(64, 200, 227, .7);
    -fx-border-width: 1;
    -fx-border-radius: 3;
    -fx-background-color: black;
-   -fx-text-fill: rgba(177, 235, 252)}
+   -fx-text-fill: rgba(64, 200, 227)}
 
 
