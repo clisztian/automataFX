@@ -45,6 +45,7 @@ dependencies {
     compile group: 'net.sourceforge.javacsv', name: 'javacsv', version: '2.0'
     compile fileTree(dir: 'libs', include: ['*.jar']) 
     // https://mvnrepository.com/artifact/org.openjfx/javafx
+    implementation group: 'exchange.core2', name: 'exchange-core', version: '0.5.3'
 
 	// https://mvnrepository.com/artifact/eu.hansolo/Medusa
 	compile group: 'eu.hansolo', name: 'Medusa', version: '11.5'

@@ -337,9 +337,7 @@ public class CentralAutomataController extends Application {
 		/**
 		 * Launch the prediction panel for the given automata
 		 */
-		Platform.runLater(() -> {
-			prediction_panel = new PredictionPanel(automata.get(0).getAutomata(), automata.get(0).getOutput(), automaton_panel.getN_bits());
-		});
+		prediction_panel.show();
 		
 		bar = new ProgressBar();
 		bar.progressProperty().bind(learnTask.progressProperty());
@@ -506,7 +504,12 @@ public class CentralAutomataController extends Application {
 				automata.add(new AutomataMap<AnyRecord>(automaton, out));
 				
 			}
-
+			
+			/*
+			 * prediction panel
+			 */
+			prediction_panel = new PredictionPanel(automata.get(0).getAutomata(), automata.get(0).getOutput(), automaton_panel.getN_bits());
+			
 			/**
 			 * Create machine summary view
 			 */
@@ -751,6 +754,7 @@ public class CentralAutomataController extends Application {
 	    rt = new RotateTransition(Duration.millis(8000), imgView);
 	    rt.setAxis(Rotate.Y_AXIS);  
 	    rt.setByAngle(360);
+	    
 	    rt.setCycleCount(Animation.INDEFINITE);
 	    
 	    central_pane.getChildren().add(imgView);

@@ -23,6 +23,7 @@ import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -59,7 +60,7 @@ public class PredictionPanel {
 	
 	private Gauge probability;	
 
-	private BarChart<String,Number> local_feature_importance;
+	private StackedBarChart<String,Number> local_feature_importance;
 	private BarChart<String,Number> class_probability;
 	private AutomatonOutputPanel automata_panel;
 	
@@ -260,8 +261,8 @@ public class PredictionPanel {
 		pred_scene.getStylesheets().add(getClass().getClassLoader().getResource("css/WhiteOnBlack.css").toExternalForm());
 		prediction_stage = new Stage();
 		prediction_stage.setScene(pred_scene);
-		System.out.println("Going to show");
-		prediction_stage.show();
+		
+		//prediction_stage.show();
 		
 	}
 	
@@ -270,6 +271,9 @@ public class PredictionPanel {
 		return prediction_stage.isShowing();
 	}
 	
+	public void show() {
+		prediction_stage.show();
+	}
 	
 	/**
 	 * Update all the prediction components
@@ -319,11 +323,10 @@ public class PredictionPanel {
 		yAxis.setLabel("Importance");
 		
 		
-		local_feature_importance = new BarChart<String, Number>(xAxis, yAxis);
+		local_feature_importance = new StackedBarChart<String, Number>(xAxis, yAxis);
 		local_feature_importance.setBackground(back);
 		local_feature_importance.setPrefSize(n_real_features*70, 500);
-		local_feature_importance.setAnimated(true); 
-		local_feature_importance.setBarGap(2);
+		local_feature_importance.setAnimated(false); 
 		local_feature_importance.setCategoryGap(15);
 		
 		
