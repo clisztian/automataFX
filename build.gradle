@@ -42,7 +42,7 @@ dependencies {
     // https://mvnrepository.com/artifact/joda-time/joda-time
     implementation group: 'joda-time', name: 'joda-time', version: '2.10.8'
     implementation group: 'net.sourceforge.javacsv', name: 'javacsv', version: '2.0'
-    //compile fileTree(dir: 'libs', include: ['*.jar']) 
+    compile fileTree(dir: 'libs', include: ['*.jar']) 
     // https://mvnrepository.com/artifact/org.openjfx/javafx
     //implementation group: 'exchange.core2', name: 'exchange-core', version: '0.5.3'
 

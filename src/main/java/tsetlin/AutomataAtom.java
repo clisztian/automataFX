@@ -546,6 +546,8 @@ public class AutomataAtom {
 
     	for (int j = 0; j < nClauses; j++) {
     		
+    		int sign = clause_weights[j] > 0 ? 1 : -1;
+    		
     		int clause_chunk = j / INT_SIZE;
     		int clause_chunk_pos = j % INT_SIZE;
 	
@@ -554,27 +556,30 @@ public class AutomataAtom {
 			}
     		
   
-    		if ((2*target-1) * (1 - 2 * (j & 1)) == -1) {
-    			if ((clause_output[clause_chunk] & (1 << clause_chunk_pos)) != 0) {
+    		//signs disagree
+    		if ((2*target-1) * sign == -1 && (clause_output[clause_chunk] & (1 << clause_chunk_pos)) != 0) {
+    			
     				// Type II Feedback
 
-					clause_weights[j]--;
+					clause_weights[j] -= sign;
 					
     				
     				for (int k = 0; k < la_chunks; ++k) {
     					    					
     					inc(j, k, (~Xi[clause_patch[j]*la_chunks + k]) & (~ta_state[j][k][state_bits-1]));
     				}
-    			}
+    			
     		} 
-    		else if ((2*target-1) * (1 - 2 * (j & 1)) == 1) {
+    		
+    		//signs agree
+    		else if ((2*target-1) * sign == 1) {
     			// Type I Feedback
 
     			initialize_random_streams(j);
 
     			if ((clause_output[clause_chunk] & (1 << clause_chunk_pos)) != 0) {
     				
-    				clause_weights[j]++;
+    				clause_weights[j] += sign;
     				
     				for (int k = 0; k < la_chunks; ++k) {
     						
