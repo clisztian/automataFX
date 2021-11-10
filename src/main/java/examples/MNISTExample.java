@@ -2,6 +2,7 @@ package examples;
 
 import java.io.IOException;
 
+import tsetlin.AutomataAtomLearning;
 import tsetlin.ConvolutionEncoder;
 import tsetlin.MultivariateConvolutionalAutomatonMachine;
 
@@ -28,7 +29,8 @@ public class MNISTExample {
 		float max_specificity = 10f;
 		int nClasses = 10;
 
-		MultivariateConvolutionalAutomatonMachine conv = new MultivariateConvolutionalAutomatonMachine(myEncoder, threshold, nClasses, nClauses, max_specificity, true, 0f); 
+		//MultivariateConvolutionalAutomatonMachine conv = new MultivariateConvolutionalAutomatonMachine(myEncoder, threshold, nClasses, nClauses, max_specificity, true, 0f); 
+		AutomataAtomLearning conv = new AutomataAtomLearning(myEncoder, threshold, nClasses, nClauses, max_specificity, true, 0f); 
 		
 		long start = System.currentTimeMillis();
 		for(int i = 0; i < 1000; i++) {		
@@ -46,8 +48,14 @@ public class MNISTExample {
 		}
 		
 		
+		for(int i = 0; i < nClauses; i++) {
+			
+			System.out.println(conv.getMachine(0).tm_action(i, 100) + " " + conv.getMachine(7).tm_action(i, 100) + " " + conv.getMachine(9).tm_action(i, 100));
+		}
 		
 		
+		System.out.println(conv.getMachine(0).getState() == conv.getMachine(7).getState());
+		System.out.println(conv.getMachine(1).getState() == conv.getMachine(9).getState());
 	}
 	
 	
