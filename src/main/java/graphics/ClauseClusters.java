@@ -203,9 +203,9 @@ public class ClauseClusters {
     public void setClauseInterface() {
     	
     	
+    	System.out.println("n_classes: " + n_classes);
     	
     	for(int c = 0; c < n_classes; c++) {
-    		
     		
     		
     		for(XYChart.Data<Number, Number> d : data[c]) {

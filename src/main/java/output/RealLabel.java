@@ -22,6 +22,7 @@ public class RealLabel implements OutputLabel<Float> {
 	
 	private DescriptiveStatistics stats;
 	private RecordColumn recordColumn;
+	private String name;
 	
 	public RealLabel(int nbits, float min, float max) {
 		
@@ -106,6 +107,14 @@ public class RealLabel implements OutputLabel<Float> {
 
 	public void setTarget_max(float target_max) {
 		this.target_max = target_max;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 

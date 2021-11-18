@@ -19,7 +19,7 @@ public class CategoryLabel implements OutputLabel<String>{
 	private int number_of_classes;
 	private HashMap<String, Integer> label_encoder;
 	private RecordColumn recordColumn;
-	
+	private String name;
 
 
 	public CategoryLabel(HashMap<String, Integer> label_encoder) {
@@ -99,6 +99,14 @@ public class CategoryLabel implements OutputLabel<String>{
 	
 	public HashMap<String, Integer> getLabel_encoder() {
 		return label_encoder;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 }

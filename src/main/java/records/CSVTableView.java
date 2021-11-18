@@ -321,9 +321,6 @@ public class CSVTableView extends TableView<Map> {
 	private boolean checkIfHeaderExists(File file) throws IOException {
 		
 		System.out.println(file.toString());
-//		ClassLoader classLoader = getClass().getClassLoader();
-//		File file = new File(classLoader.getResource(file_name).getFile());
-
 		BufferedReader br = new BufferedReader(new FileReader(file));  //creates a buffering character input stream  
 		
 		StringBuffer sb=new StringBuffer();    //constructs a string buffer with no characters  

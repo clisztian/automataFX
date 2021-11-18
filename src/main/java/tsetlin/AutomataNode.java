@@ -375,7 +375,7 @@ public class AutomataNode {
 		/*******************************/
 		/*** Calculate Clause Output ***/
 		/*******************************/
-				
+					
 		calculate_clause_output(Xi, UPDATE);
 
 		/***************************/

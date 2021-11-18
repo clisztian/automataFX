@@ -47,7 +47,7 @@ public class TsetlinMachine<V> {
 
 	private Random rng;
 	private Evolutionize<V> evolution;
-	private MultivariateConvolutionalAutomatonMachine automaton;
+	private AutomataAtomLearning automaton;
 
 	private ArrayList<RealLabel> output;
 	
@@ -112,7 +112,7 @@ public class TsetlinMachine<V> {
 		
 		
 		evolution.initiateConvolutionEncoder();
-		automaton = new MultivariateConvolutionalAutomatonMachine(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, drop_clause_p); 	
+		automaton = new AutomataAtomLearning(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, drop_clause_p); 	
 		
 		n_global_features = evolution.getEncoder().getEncoder_map().size();
 		
@@ -939,11 +939,11 @@ public class TsetlinMachine<V> {
 	
 	
 	
-	public MultivariateConvolutionalAutomatonMachine getAutomaton() {
+	public AutomataAtomLearning getAutomaton() {
 		return automaton;
 	}
 
-	public void setAutomaton(MultivariateConvolutionalAutomatonMachine automaton) {
+	public void setAutomaton(AutomataAtomLearning automaton) {
 		this.automaton = automaton;
 	}
 
