@@ -195,7 +195,7 @@ public class EEGMonitorView extends Application {
             		Platform.runLater(() -> {
             			updateInterpretabilityCharts(pred);    
             			
-            			clause_pane.computeClauseScatterPlot(automata.getAutomaton());
+            			//clause_pane.computeClauseScatterPlot(automata.getAutomaton());
                     });
             		
             		

@@ -46,6 +46,10 @@ dependencies {
     // https://mvnrepository.com/artifact/org.openjfx/javafx
     //implementation group: 'exchange.core2', name: 'exchange-core', version: '0.5.3'
 
+	// https://mvnrepository.com/artifact/de.gsi/chartfx
+	implementation group: 'de.gsi', name: 'chartfx', version: '11.2.6', ext: 'pom'
+
+
 	// https://mvnrepository.com/artifact/eu.hansolo/Medusa
 	implementation group: 'eu.hansolo', name: 'Medusa', version: '11.5'
 

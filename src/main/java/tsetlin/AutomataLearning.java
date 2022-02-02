@@ -43,7 +43,7 @@ public class AutomataLearning<V> {
 
 	private Random rng;
 	private Evolutionize<V> evolution;
-	private MultivariateConvolutionalAutomatonMachine automaton;
+	private AutomataAtomLearning automaton;
 
 	private ArrayList<RealLabel> output;
 	
@@ -94,7 +94,7 @@ public class AutomataLearning<V> {
 		else evolution.initiate(val.getClass(), dim_x);
 		
 		evolution.initiateConvolutionEncoder();
-		automaton = new MultivariateConvolutionalAutomatonMachine(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, drop_clause_p); 	
+		automaton = new AutomataAtomLearning(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, drop_clause_p); 	
 		
 		n_global_features = evolution.getEncoder().getEncode_maps().length;
 		
@@ -146,7 +146,7 @@ public class AutomataLearning<V> {
 		else evolution.initiate(val.getClass(), dim_x, hours, day_of_month, month_of_year, week_of_year);
 		
 		evolution.initiateConvolutionEncoder();
-		automaton = new MultivariateConvolutionalAutomatonMachine(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, drop_clause_p); 	
+		automaton = new AutomataAtomLearning(evolution.getConv_encoder(), threshold, nClasses, nClauses, max_specificity, true, drop_clause_p); 	
 		
 		n_global_features = evolution.getEncoder().getEncode_maps().length;
 		
@@ -728,11 +728,11 @@ public class AutomataLearning<V> {
 	
 	
 	
-	public MultivariateConvolutionalAutomatonMachine getAutomaton() {
+	public AutomataAtomLearning getAutomaton() {
 		return automaton;
 	}
 
-	public void setAutomaton(MultivariateConvolutionalAutomatonMachine automaton) {
+	public void setAutomaton(AutomataAtomLearning automaton) {
 		this.automaton = automaton;
 	}
 

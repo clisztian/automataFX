@@ -3,6 +3,8 @@ package graphics;
 import java.util.ArrayList;
 import java.util.Random;
 
+import eu.hansolo.tilesfx.Tile;
+import eu.hansolo.tilesfx.colors.TileColor;
 import interpretability.GlobalRealFeatures;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -202,15 +204,21 @@ public class ClauseClusters {
      */
     public void setClauseInterface() {
     	
+    	eu.hansolo.tilesfx.Tile.TileColor[] my_colors = Tile.TileColor.values();
     	
-    	System.out.println("n_classes: " + n_classes);
     	
-    	for(int c = 0; c < n_classes; c++) {
+    	for(int c = 0; c < Math.min(n_classes, my_colors.length); c++) {
+    		
     		
     		
     		for(XYChart.Data<Number, Number> d : data[c]) {
         		
-    			String color = my_colors[c];
+    			
+    			
+    			String color = ((int)(my_colors[c].color.getRed()*255)) + ", " + ((int)(my_colors[c].color.getGreen()*255)) + ", " + ((int)(my_colors[c].color.getBlue()*255));
+    			
+    			System.out.println(color);
+    			
         		d.getNode().setStyle("-fx-background-color: rgb(" + color + "), transparent;\n"
                                     + "-fx-background-radius: 7px;\n"
                                     + "-fx-padding: 7px;");

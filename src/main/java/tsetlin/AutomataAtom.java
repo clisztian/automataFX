@@ -630,7 +630,7 @@ public class AutomataAtom {
 			int clause_chunk = j / 32;
 			int clause_pos = j % 32;
 			
-			if( ((clause_output[clause_chunk] & (1 << clause_pos)) != 0) && j % 2 == 0) {	
+			if( ((clause_output[clause_chunk] & (1 << clause_pos)) != 0) && clause_weights[j] > 0) {	
 				
 				for (k = 0; k < nFeatures; k++) {
 					
@@ -672,7 +672,7 @@ public class AutomataAtom {
 		int action_include, action_include_negated;
 	
 		int[] risk_strength = new int[2*nFeatures];
-		int positive_pol = 0;
+		int positive_pol = -1;
 		
 		if(!positive_polarity) positive_pol = 1;
 		
@@ -681,7 +681,7 @@ public class AutomataAtom {
 			int clause_chunk = j / 32;
 			int clause_pos = j % 32;
 			
-			if( ((clause_output[clause_chunk] & (1 << clause_pos)) != 0) && j % 2 == positive_pol ) {	
+			if( ((clause_output[clause_chunk] & (1 << clause_pos)) != 0) && (clause_weights[j] * positive_pol < 0)) {	
 				
 				for (k = 0; k < nFeatures; k++) {
 					
@@ -733,8 +733,8 @@ public class AutomataAtom {
 		for(int k = 0; k < nFeatures; k++) {
 			for(int j = 0; j < nClauses; j++) {
 			
-				feature_strength[k] += tm_action(j, k);
-				feature_strength[2*k] += tm_action(j, nFeatures +k);
+				feature_strength[k] += tm_action(j, k)*clause_weights[j];
+				feature_strength[2*k] += tm_action(j, nFeatures +k)*clause_weights[j];
 			}	
 		}		
 		return feature_strength;
