@@ -429,7 +429,7 @@ public class MultiAutomataLearning<V> {
 	}
 	
 	
-	private void localFeatureImportance(int[] local_features) {
+	public GlobalRealFeatures[][] localFeatureImportance(int[] local_features) {
 		
 		int patch_dim_x = dim_x;
 	
@@ -495,7 +495,7 @@ public class MultiAutomataLearning<V> {
 				 }
 			 }
 		}
-		
+		return real_features;
 		
 	}
 	

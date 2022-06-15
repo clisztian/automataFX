@@ -101,7 +101,7 @@ public class AutomataAtomLearning {
 		
 		if(nClasses == 1) return update_regression(Xi, target_class);
 		
-		//System.out.println("Target class: " + target_class);
+//		System.out.println("Target class: " + target_class);
 		tm[target_class].update(Xi, 1);
 
 		int negative_target_class = rng.nextInt(nClasses);
